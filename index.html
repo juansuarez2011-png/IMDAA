@@ -104,9 +104,6 @@
         .perfil-info { display: flex; gap: 12px; flex-wrap: wrap; background: #e8f0f7; border-radius: 12px; padding: 8px 14px; margin-bottom: 12px; font-size: 0.75rem; color: #1a4056; }
         .perfil-info strong { color: #0b2a3b; }
         
-        /* Ocultar historial para PDF */
-        .pdf-mode .tabla-historial { display: none !important; }
-        
         @media (max-width: 480px) {
             .container { padding: 14px 12px; }
             .header .logo { width: 55px; height: 55px; }
@@ -121,7 +118,7 @@
     <!-- HEADER con LOGO -->
     <div class="header">
         <div class="logo" id="logoContainer">
-            <img id="logoImg" src="LOGO.png" alt="IMDAA" style="display:none;" onerror="this.style.display='none';document.getElementById('logoPlaceholder').style.display='flex'">
+            <img id="logoImg" src="LOGO.png" alt="IMDAA" style="display:none;">
             <div id="logoPlaceholder" class="logo-placeholder">IMDAA<br><small>AGROPECUARIO</small></div>
         </div>
         <div class="titulo">
@@ -139,7 +136,7 @@
     </div>
 
     <!-- GRID PRINCIPAL -->
-    <div class="grid-2">
+    <div class="grid-2" id="contenidoPDF">
         <div class="form-section">
             <h2>🧾 Factores y preguntas</h2>
             <div class="perfil-selector">
@@ -270,6 +267,24 @@
         const perfilFactores = document.getElementById('perfilFactores');
 
         fechaActual.textContent = new Date().toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+
+        // ==============================================================
+        //  LOGO - intentar cargar LOGO.png
+        // ==============================================================
+        const logoImg = document.getElementById('logoImg');
+        const logoPlaceholder = document.getElementById('logoPlaceholder');
+        
+        // Forzar carga del logo con timestamp para evitar caché
+        logoImg.src = 'LOGO.png?' + Date.now();
+        logoImg.onload = function() {
+            logoPlaceholder.style.display = 'none';
+            logoImg.style.display = 'block';
+        };
+        logoImg.onerror = function() {
+            console.log('Logo no encontrado: LOGO.png');
+            logoPlaceholder.style.display = 'flex';
+            logoImg.style.display = 'none';
+        };
 
         // ==============================================================
         //  FUNCIONES AUXILIARES
@@ -574,11 +589,11 @@
         }
 
         // ==============================================================
-        //  PDF - CAPTURA DE PANTALLA DEL DASHBOARD (sin historial)
+        //  PDF - CAPTURA DE PANTALLA DE TODA LA ENCUESTA
         // ==============================================================
         async function descargarPDF() {
             if (!ultimoResultado) {
-                alert('⚠️ Primero calcule la evaluación para generar el PDF.');
+                alert('⚠️ Primero calcule la evaluación con el botón "Calcular".');
                 return;
             }
 
@@ -587,60 +602,55 @@
             const originalDisplay = historialSection.style.display;
             historialSection.style.display = 'none';
             
-            // Pequeña pausa para que el DOM se actualice
-            await new Promise(r => setTimeout(r, 200));
+            await new Promise(r => setTimeout(r, 300));
 
             try {
-                // Capturar el panel de resultados completo
-                const panel = document.getElementById('dashboardPanel');
-                const canvas = await html2canvas(panel, {
+                // Capturar TODO el contenido principal (formulario + resultados)
+                const contenido = document.getElementById('contenidoPDF');
+                const canvas = await html2canvas(contenido, {
                     scale: 2.5,
                     useCORS: true,
                     backgroundColor: '#ffffff',
                     allowTaint: true,
                     logging: false,
-                    onclone: function(doc) {
-                        // Asegurar que las gráficas se rendericen correctamente
-                    }
+                    width: contenido.scrollWidth,
+                    height: contenido.scrollHeight,
+                    windowWidth: contenido.scrollWidth,
+                    windowHeight: contenido.scrollHeight
                 });
 
                 const imgData = canvas.toDataURL('image/png');
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('p', 'mm', 'a4');
                 
-                // Calcular dimensiones para que quepa en una página A4
-                const imgWidth = 210; // mm
+                const imgWidth = 210;
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
                 
-                // Si la imagen es más alta que la página, ajustar
-                const maxHeight = 285; // mm (margen inferior)
+                // Si la imagen es muy alta, ajustar
                 let finalHeight = imgHeight;
                 let finalWidth = imgWidth;
-                if (imgHeight > maxHeight) {
-                    finalHeight = maxHeight;
-                    finalWidth = (imgWidth * maxHeight) / imgHeight;
+                if (imgHeight > 285) {
+                    finalHeight = 285;
+                    finalWidth = (imgWidth * 285) / imgHeight;
                 }
                 
-                // Centrar la imagen en la página
                 const xOffset = (210 - finalWidth) / 2;
-                const yOffset = 10;
+                const yOffset = 8;
                 
-                // Agregar título y datos en la parte superior del PDF
-                doc.setFontSize(14);
+                // Título en el PDF
+                doc.setFontSize(12);
                 doc.setTextColor(26, 90, 58);
-                doc.text('Evaluación de Desempeño - IMDAA', 105, 15, { align: 'center' });
-                doc.setFontSize(9);
+                doc.text('Evaluación de Desempeño - IMDAA', 105, 12, { align: 'center' });
+                doc.setFontSize(8);
                 doc.setTextColor(47, 91, 116);
-                doc.text(`Nombre: ${nombreInput.value || 'Sin nombre'}  |  Cédula: ${cedulaInput.value || 'Sin cédula'}  |  Cargo: ${cargoDeptoInput.value || 'Sin cargo'}  |  Perfil: ${getPerfilLabel(currentPerfil)}`, 105, 23, { align: 'center' });
+                doc.text(`Nombre: ${nombreInput.value || 'Sin nombre'}  |  Cédula: ${cedulaInput.value || 'Sin cédula'}  |  Cargo: ${cargoDeptoInput.value || 'Sin cargo'}  |  Perfil: ${getPerfilLabel(currentPerfil)}`, 105, 18, { align: 'center' });
                 
-                // Agregar la imagen capturada
-                doc.addImage(imgData, 'PNG', xOffset, yOffset + 10, finalWidth, finalHeight - 10);
+                doc.addImage(imgData, 'PNG', xOffset, yOffset + 7, finalWidth, finalHeight - 7);
                 
-                // Pie de página
-                doc.setFontSize(7);
+                doc.setFontSize(6);
                 doc.setTextColor(100, 100, 100);
                 doc.text('Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA · G-20004428-4', 105, 290, { align: 'center' });
-                doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, 105, 295, { align: 'center' });
+                doc.text(new Date().toLocaleDateString('es-ES'), 105, 294, { align: 'center' });
                 
                 doc.save('evaluacion_IMDAA.pdf');
                 
@@ -649,7 +659,6 @@
                 alert('❌ Error al generar el PDF. Intente nuevamente.');
             }
 
-            // Restaurar historial
             historialSection.style.display = originalDisplay;
         }
 
