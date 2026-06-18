@@ -13,9 +13,10 @@
         .container { max-width: 1400px; width: 100%; background: white; border-radius: 28px; box-shadow: 0 20px 40px -12px rgba(0,20,30,0.3); padding: 22px 25px; }
         
         .header { display: flex; align-items: center; gap: 20px; border-bottom: 3px solid #1a5a3a; padding-bottom: 14px; margin-bottom: 22px; flex-wrap: wrap; }
-        .header .logo { flex-shrink: 0; width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid #e8c84a; background: transparent; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .header .logo { flex-shrink: 0; width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid #e8c84a; background: #ffffff; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .header .logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
-        .header .logo-placeholder { display: none; }
+        .header .logo-placeholder { color: #1a5a3a; font-weight: 900; font-size: 1.4rem; text-align: center; line-height: 1.2; padding: 4px; }
+        .header .logo-placeholder small { font-size: 0.6rem; display: block; font-weight: 400; }
         .header .titulo { flex: 1; }
         .header .titulo h1 { font-size: 1.8rem; font-weight: 600; color: #1a5a3a; }
         .header .titulo small { font-size: 0.85rem; color: #2f5b74; display: block; font-weight: 400; }
@@ -110,11 +111,13 @@
 </head>
 <body>
 <div class="container" id="app">
-    <!-- HEADER -->
-    <div class="header" id="headerLogo">
+    <!-- HEADER con LOGO -->
+    <div class="header">
         <div class="logo" id="logoContainer">
-            <img id="logoImg" src="LOGO.png" alt="IMDAA" crossorigin="anonymous">
-            <div id="logoPlaceholder" class="logo-placeholder">IMDAA<br><small>AGROPECUARIO</small></div>
+            <img id="logoImg" src="LOGO.png" alt="IMDAA" style="width:100%; height:100%; object-fit:contain; display:block;">
+            <div id="logoPlaceholder" class="logo-placeholder" style="display:none;">
+                IMDAA<br><small>AGROPECUARIO</small>
+            </div>
         </div>
         <div class="titulo">
             <h1>Evaluación de Desempeño</h1>
@@ -124,7 +127,7 @@
     </div>
 
     <!-- DATOS PERSONALES -->
-    <div class="datos-personales" id="datosEvaluado">
+    <div class="datos-personales">
         <div class="campo"><label>👤 Nombre completo</label><input type="text" id="nombreInput" placeholder="Ej. Juan Ocando"></div>
         <div class="campo"><label>🪪 Cédula / ID</label><input type="text" id="cedulaInput" placeholder="Ej. V-39399939"></div>
         <div class="campo"><label>🏢 Cargo / Departamento</label><input type="text" id="cargoDeptoInput" placeholder="Ej. Barrendero"></div>
@@ -269,14 +272,13 @@
         const logoImg = document.getElementById('logoImg');
         const logoPlaceholder = document.getElementById('logoPlaceholder');
         
-        logoImg.src = 'LOGO.png?' + Date.now();
-        logoImg.onload = function() {
-            logoPlaceholder.style.display = 'none';
-            logoImg.style.display = 'block';
-        };
         logoImg.onerror = function() {
+            this.style.display = 'none';
             logoPlaceholder.style.display = 'block';
-            logoImg.style.display = 'none';
+        };
+        logoImg.onload = function() {
+            this.style.display = 'block';
+            logoPlaceholder.style.display = 'none';
         };
 
         // ==============================================================
@@ -582,7 +584,7 @@
         }
 
         // ==============================================================
-        //  PDF CON DISEÑO MEJORADO - 2 GRAFICAS ARRIBA Y 2 ABAJO
+        //  PDF - CON LOGO Y GRÁFICAS COMPLETAS EN UNA SOLA HOJA
         // ==============================================================
         async function descargarPDF() {
             if (!ultimoResultado) {
@@ -600,83 +602,93 @@
             const originalDisplay = historialSection.style.display;
             historialSection.style.display = 'none';
             
-            await new Promise(r => setTimeout(r, 500));
+            await new Promise(r => setTimeout(r, 300));
 
             try {
                 const pdfContainer = document.createElement('div');
-                pdfContainer.style.cssText = 'padding:25px; background:white; width:800px; font-family:Segoe UI, sans-serif; margin:0 auto;';
+                pdfContainer.style.cssText = 'padding:15px 20px; background:white; width:750px; font-family:Segoe UI, sans-serif;';
+                const logoSrc = logoImg.src || 'LOGO.png';
+                
                 pdfContainer.innerHTML = `
-                    <!-- Header -->
-                    <div style="display:flex; align-items:center; gap:20px; border-bottom:3px solid #1a5a3a; padding-bottom:15px; margin-bottom:20px;">
-                        <div style="width:80px; height:80px; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:4px solid #e8c84a; background:transparent; flex-shrink:0;">
-                            <img src="${logoImg.src}" alt="IMDAA" style="width:100%; height:100%; object-fit:contain;">
+                    <!-- HEADER -->
+                    <div style="display:flex; align-items:center; gap:15px; border-bottom:3px solid #1a5a3a; padding-bottom:10px; margin-bottom:12px;">
+                        <div style="width:65px; height:65px; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:3px solid #e8c84a; background:#ffffff; flex-shrink:0;">
+                            <img src="${logoSrc}" alt="IMDAA" style="width:100%; height:100%; object-fit:contain;">
                         </div>
                         <div>
-                            <h2 style="color:#1a5a3a; margin:0; font-size:1.3rem;">Evaluación de Desempeño</h2>
-                            <p style="color:#2f5b74; font-size:0.75rem; margin:2px 0;">Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA</p>
-                            <p style="color:#2f5b74; font-size:0.65rem; margin:0;">G-20004428-4</p>
+                            <h2 style="color:#1a5a3a; margin:0; font-size:1.2rem;">Evaluación de Desempeño</h2>
+                            <p style="color:#2f5b74; font-size:0.65rem; margin:0;">Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA</p>
+                            <p style="color:#2f5b74; font-size:0.6rem; margin:0;">G-20004428-4</p>
                         </div>
-                        <div style="margin-left:auto; font-size:0.7rem; color:#2a5e7a; background:#e8f0f7; padding:4px 14px; border-radius:40px;">
-                            ${fecha}
-                        </div>
+                        <div style="margin-left:auto; font-size:0.6rem; color:#2a5e7a; background:#e8f0f7; padding:2px 12px; border-radius:40px;">${fecha}</div>
                     </div>
                     
-                    <!-- Datos del evaluado -->
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:8px; margin:12px 0; font-size:0.8rem; background:#f5f9f6; padding:10px 16px; border-radius:8px;">
-                        <div><strong>Nombre:</strong> ${nombre}</div>
-                        <div><strong>Cédula:</strong> ${cedula}</div>
-                        <div><strong>Cargo:</strong> ${cargo}</div>
-                        <div><strong>Perfil:</strong> ${perfil}</div>
+                    <!-- DATOS DEL EVALUADO -->
+                    <div style="background:#f0f7f2; border-radius:8px; padding:8px 14px; margin:8px 0; border:1px solid #c5dccd; display:grid; grid-template-columns:1fr 1fr; gap:4px 20px; font-size:0.75rem;">
+                        <div><strong style="color:#1a5a3a;">Nombre:</strong> ${nombre}</div>
+                        <div><strong style="color:#1a5a3a;">Cédula:</strong> ${cedula}</div>
+                        <div><strong style="color:#1a5a3a;">Cargo/Depto:</strong> ${cargo}</div>
+                        <div><strong style="color:#1a5a3a;">Perfil:</strong> ${perfil}</div>
                     </div>
                     
-                    <!-- Tabla de resultados -->
-                    <table style="width:100%; border-collapse:collapse; margin:10px 0; font-size:0.8rem;">
-                        <thead><tr style="background:#1a5a3a; color:white;"><th style="padding:6px 10px;text-align:left;">Factor</th><th style="padding:6px 10px;text-align:center;">Peso</th><th style="padding:6px 10px;text-align:center;">Nivel</th><th style="padding:6px 10px;text-align:center;">Valor</th></tr></thead>
+                    <!-- TABLA -->
+                    <table style="width:100%; border-collapse:collapse; margin:6px 0; font-size:0.7rem;">
+                        <thead><tr style="background:#1a5a3a; color:white;">
+                            <th style="padding:4px 8px;text-align:left;">Factor</th>
+                            <th style="padding:4px 8px;text-align:center;">Peso</th>
+                            <th style="padding:4px 8px;text-align:center;">Nivel</th>
+                            <th style="padding:4px 8px;text-align:center;">Valor</th>
+                        </tr></thead>
                         <tbody>
-                            ${ultimoResultado.resultados.map(r => `<tr><td style="padding:5px 10px;border-bottom:1px solid #eee;">${r.label}</td><td style="padding:5px 10px;border-bottom:1px solid #eee;text-align:center;">${r.peso}%</td><td style="padding:5px 10px;border-bottom:1px solid #eee;text-align:center;">${r.nivel}</td><td style="padding:5px 10px;border-bottom:1px solid #eee;text-align:center;">${r.promedio.toFixed(2)}</td></tr>`).join('')}
+                            ${ultimoResultado.resultados.map(r => `<tr>
+                                <td style="padding:3px 8px;border-bottom:1px solid #eee;">${r.label}</td>
+                                <td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;">${r.peso}%</td>
+                                <td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:bold;color:#1a5a3a;">${r.nivel}</td>
+                                <td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;">${r.promedio.toFixed(2)}</td>
+                            </tr>`).join('')}
                         </tbody>
                     </table>
                     
-                    <!-- Resumen -->
-                    <div style="background:#e8f5ee; padding:10px 16px; border-radius:10px; display:flex; justify-content:space-between; flex-wrap:wrap; margin:10px 0; border-left:4px solid #1a5a3a;">
+                    <!-- RESUMEN -->
+                    <div style="background:#e8f5ee; padding:6px 14px; border-radius:8px; display:flex; justify-content:space-between; flex-wrap:wrap; margin:6px 0; border-left:4px solid #1a5a3a; font-size:0.7rem;">
                         <span><strong>Nota global:</strong> ${ultimoResultado.notaFinal.toFixed(2)}</span>
                         <span><strong>Nivel:</strong> ${nivelConcepto.textContent}</span>
                         <span><strong>Perfil:</strong> ${perfil}</span>
                     </div>
                     
-                    <!-- Escala -->
-                    <div style="text-align:center; font-size:0.65rem; color:#2a5e7a; margin:6px 0 10px; background:#f0f5f9; padding:4px; border-radius:6px;">
-                        <strong>Escala:</strong> S (5) Sobresaliente · E (4) Excelente · B (3) Bueno · R (2) Regular · D (1) Deficiente
+                    <!-- ESCALA -->
+                    <div style="text-align:center; font-size:0.55rem; color:#2a5e7a; margin:4px 0 6px; background:#f5f9f6; padding:3px; border-radius:6px;">
+                        Escala: S (5) Sobresaliente · E (4) Excelente · B (3) Bueno · R (2) Regular · D (1) Deficiente
                     </div>
                     
-                    <!-- Gráficas: 2 arriba y 2 abajo -->
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
-                        <div style="border:1px solid #e6edf5; border-radius:8px; padding:6px; background:white;">
-                            <p style="text-align:center; font-size:0.6rem; font-weight:600; color:#2a5e7a; margin:0 0 4px 0;">RADAR · COMPETENCIAS</p>
-                            <canvas id="pdfRadar" width="250" height="180"></canvas>
+                    <!-- GRÁFICAS EN 2x2 MÁS PEQUEÑAS -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:4px;">
+                        <div style="border:1px solid #e6edf5; border-radius:6px; padding:4px; background:#fafcfd;">
+                            <p style="font-size:0.5rem; text-align:center; color:#2a5e7a; margin:0 0 2px 0; font-weight:600;">RADAR · COMPETENCIAS</p>
+                            <canvas id="pdfRadar" width="180" height="130"></canvas>
                         </div>
-                        <div style="border:1px solid #e6edf5; border-radius:8px; padding:6px; background:white;">
-                            <p style="text-align:center; font-size:0.6rem; font-weight:600; color:#2a5e7a; margin:0 0 4px 0;">METAS · BARRA</p>
-                            <canvas id="pdfBar" width="250" height="180"></canvas>
+                        <div style="border:1px solid #e6edf5; border-radius:6px; padding:4px; background:#fafcfd;">
+                            <p style="font-size:0.5rem; text-align:center; color:#2a5e7a; margin:0 0 2px 0; font-weight:600;">METAS · BARRA</p>
+                            <canvas id="pdfBar" width="180" height="130"></canvas>
                         </div>
-                        <div style="border:1px solid #e6edf5; border-radius:8px; padding:6px; background:white;">
-                            <p style="text-align:center; font-size:0.6rem; font-weight:600; color:#2a5e7a; margin:0 0 4px 0;">ANILLO · SATISFACCIÓN</p>
-                            <canvas id="pdfDonut" width="250" height="180"></canvas>
+                        <div style="border:1px solid #e6edf5; border-radius:6px; padding:4px; background:#fafcfd;">
+                            <p style="font-size:0.5rem; text-align:center; color:#2a5e7a; margin:0 0 2px 0; font-weight:600;">ANILLO · SATISFACCIÓN</p>
+                            <canvas id="pdfDonut" width="180" height="130"></canvas>
                         </div>
-                        <div style="border:1px solid #e6edf5; border-radius:8px; padding:6px; background:white;">
-                            <p style="text-align:center; font-size:0.6rem; font-weight:600; color:#2a5e7a; margin:0 0 4px 0;">TERMÓMETRO · GESTIÓN</p>
-                            <canvas id="pdfGauge" width="250" height="180"></canvas>
+                        <div style="border:1px solid #e6edf5; border-radius:6px; padding:4px; background:#fafcfd;">
+                            <p style="font-size:0.5rem; text-align:center; color:#2a5e7a; margin:0 0 2px 0; font-weight:600;">TERMÓMETRO · GESTIÓN</p>
+                            <canvas id="pdfGauge" width="180" height="130"></canvas>
                         </div>
                     </div>
                     
-                    <!-- Pie -->
-                    <div style="text-align:center; font-size:0.55rem; color:#3d6f8a; margin-top:14px; border-top:1px solid #d6e2ed; padding-top:8px;">
-                        Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA · G-20004428-4
+                    <!-- PIE -->
+                    <div style="text-align:center; font-size:0.5rem; color:#3d6f8a; margin-top:8px; border-top:1px solid #d6e2ed; padding-top:6px;">
+                        IMDAA · G-20004428-4
                     </div>
                 `;
                 document.body.appendChild(pdfContainer);
 
-                // Renderizar gráficas en PDF
+                // Renderizar gráficas en PDF con tamaño reducido
                 const radarCtx = document.getElementById('pdfRadar').getContext('2d');
                 const barCtx = document.getElementById('pdfBar').getContext('2d');
                 const donutCtx = document.getElementById('pdfDonut').getContext('2d');
@@ -687,10 +699,26 @@
                 const donutData = charts.donut ? charts.donut.data : null;
                 const gaugeData = charts.gauge ? charts.gauge.data : null;
 
-                if (radarData) new Chart(radarCtx, { type: 'radar', data: radarData, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
-                if (barData) new Chart(barCtx, { type: 'bar', data: barData, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 5 } } } });
-                if (donutData) new Chart(donutCtx, { type: 'doughnut', data: donutData, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
-                if (gaugeData) new Chart(gaugeCtx, { type: 'doughnut', data: gaugeData, options: { cutout: '75%', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
+                if (radarData) new Chart(radarCtx, { 
+                    type: 'radar', 
+                    data: radarData, 
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { r: { pointLabels: { font: { size: 8 } } } } } 
+                });
+                if (barData) new Chart(barCtx, { 
+                    type: 'bar', 
+                    data: barData, 
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 5 } } } 
+                });
+                if (donutData) new Chart(donutCtx, { 
+                    type: 'doughnut', 
+                    data: donutData, 
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } 
+                });
+                if (gaugeData) new Chart(gaugeCtx, { 
+                    type: 'doughnut', 
+                    data: gaugeData, 
+                    options: { cutout: '70%', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } 
+                });
 
                 setTimeout(async () => {
                     const canvas = await html2canvas(pdfContainer, { scale: 2.5, useCORS: true, backgroundColor: '#ffffff' });
@@ -702,7 +730,7 @@
                     doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
                     doc.save('evaluacion_IMDAA.pdf');
                     document.body.removeChild(pdfContainer);
-                }, 900);
+                }, 800);
 
             } catch (error) {
                 console.error('Error generando PDF:', error);
