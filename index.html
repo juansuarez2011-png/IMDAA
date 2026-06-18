@@ -104,6 +104,9 @@
         .perfil-info { display: flex; gap: 12px; flex-wrap: wrap; background: #e8f0f7; border-radius: 12px; padding: 8px 14px; margin-bottom: 12px; font-size: 0.75rem; color: #1a4056; }
         .perfil-info strong { color: #0b2a3b; }
         
+        /* Ocultar historial para PDF */
+        .pdf-mode .tabla-historial { display: none !important; }
+        
         @media (max-width: 480px) {
             .container { padding: 14px 12px; }
             .header .logo { width: 55px; height: 55px; }
@@ -118,7 +121,7 @@
     <!-- HEADER con LOGO -->
     <div class="header">
         <div class="logo" id="logoContainer">
-            <img id="logoImg" src="logoimdaa.jpg" alt="IMDAA" style="display:none;" onerror="this.style.display='none';document.getElementById('logoPlaceholder').style.display='flex'">
+            <img id="logoImg" src="LOGO.png" alt="IMDAA" style="display:none;" onerror="this.style.display='none';document.getElementById('logoPlaceholder').style.display='flex'">
             <div id="logoPlaceholder" class="logo-placeholder">IMDAA<br><small>AGROPECUARIO</small></div>
         </div>
         <div class="titulo">
@@ -187,7 +190,7 @@
                     <span><span class="color-dot" style="background:#b15e5e;"></span> D (1) Deficiente</span>
                 </div>
             </div>
-            <div class="chart-grid">
+            <div class="chart-grid" id="chartGrid">
                 <div class="chart-card"><h4>🎯 Radar · Competencias</h4><canvas id="radarChart" height="110"></canvas></div>
                 <div class="chart-card"><h4>📊 Metas · Barra</h4><canvas id="barChart" height="110"></canvas></div>
                 <div class="chart-card"><h4>🧩 Anillo · Satisfacción</h4><canvas id="donutChart" height="110"></canvas></div>
@@ -571,7 +574,7 @@
         }
 
         // ==============================================================
-        //  PDF MEJORADO
+        //  PDF - CAPTURA DE PANTALLA DEL DASHBOARD (sin historial)
         // ==============================================================
         async function descargarPDF() {
             if (!ultimoResultado) {
@@ -579,95 +582,74 @@
                 return;
             }
 
+            // Ocultar historial temporalmente
             const historialSection = document.getElementById('historialSection');
             const originalDisplay = historialSection.style.display;
             historialSection.style.display = 'none';
-            await new Promise(r => setTimeout(r, 150));
+            
+            // Pequeña pausa para que el DOM se actualice
+            await new Promise(r => setTimeout(r, 200));
 
             try {
-                const pdfContainer = document.createElement('div');
-                pdfContainer.style.cssText = 'padding:30px; background:white; width:800px; font-family:Segoe UI, sans-serif;';
-                pdfContainer.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:20px; border-bottom:3px solid #1a5a3a; padding-bottom:15px; margin-bottom:20px;">
-                        <div style="width:70px; height:70px; border-radius:50%; background:#1a5a3a; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:1rem; text-align:center; border:3px solid #e8c84a; flex-shrink:0;">
-                            IMDAA<br><span style="font-size:0.5rem;">AGRO</span>
-                        </div>
-                        <div>
-                            <h2 style="color:#1a5a3a; margin:0; font-size:1.4rem;">Evaluación de Desempeño</h2>
-                            <p style="color:#2f5b74; font-size:0.8rem; margin:0;">Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA</p>
-                            <p style="color:#2f5b74; font-size:0.7rem; margin:0;">G-20004428-4</p>
-                        </div>
-                        <div style="margin-left:auto; font-size:0.7rem; color:#2a5e7a; background:#e8f0f7; padding:4px 14px; border-radius:40px;">
-                            ${new Date().toLocaleDateString('es-ES')}
-                        </div>
-                    </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px 30px; margin:15px 0; font-size:0.85rem; background:#f5f9f6; padding:12px 18px; border-radius:10px;">
-                        <div><strong>Nombre:</strong> ${nombreInput.value || 'Sin nombre'}</div>
-                        <div><strong>Cédula:</strong> ${cedulaInput.value || 'Sin cédula'}</div>
-                        <div><strong>Cargo/Depto:</strong> ${cargoDeptoInput.value || 'Sin cargo'}</div>
-                        <div><strong>Perfil:</strong> ${getPerfilLabel(currentPerfil)}</div>
-                    </div>
-                    <hr style="border:1px solid #dce8f2;">
-                    <table style="width:100%; border-collapse:collapse; margin:12px 0; font-size:0.85rem;">
-                        <thead><tr style="background:#1a5a3a; color:white;"><th style="padding:8px 12px;text-align:left;">Factor</th><th style="padding:8px 12px;text-align:left;">Peso</th><th style="padding:8px 12px;text-align:left;">Nivel</th><th style="padding:8px 12px;text-align:left;">Valor</th></tr></thead>
-                        <tbody>
-                            ${ultimoResultado.resultados.map(r => `<tr><td style="padding:6px 12px;border-bottom:1px solid #eee;">${r.label}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;">${r.peso}%</td><td style="padding:6px 12px;border-bottom:1px solid #eee;">${r.nivel}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;">${r.promedio.toFixed(2)}</td></tr>`).join('')}
-                        </tbody>
-                    </table>
-                    <div style="background:#e8f5ee; padding:12px 18px; border-radius:12px; display:flex; justify-content:space-between; flex-wrap:wrap; margin:10px 0; border-left:4px solid #1a5a3a;">
-                        <span><strong>Nota global:</strong> ${ultimoResultado.notaFinal.toFixed(2)}</span>
-                        <span><strong>Nivel:</strong> ${nivelConcepto.textContent}</span>
-                        <span><strong>Perfil:</strong> ${getPerfilLabel(currentPerfil)}</span>
-                    </div>
-                    <hr>
-                    <div style="text-align:center; font-size:0.7rem; color:#2a5e7a; margin:8px 0 12px;">
-                        Escala: S (5) Sobresaliente · E (4) Excelente · B (3) Bueno · R (2) Regular · D (1) Deficiente
-                    </div>
-                    <div style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center;">
-                        <div style="flex:1; min-width:160px; max-width:200px;"><canvas id="pdfRadar" width="200" height="160"></canvas></div>
-                        <div style="flex:1; min-width:160px; max-width:200px;"><canvas id="pdfBar" width="200" height="160"></canvas></div>
-                        <div style="flex:1; min-width:160px; max-width:200px;"><canvas id="pdfDonut" width="200" height="160"></canvas></div>
-                        <div style="flex:1; min-width:160px; max-width:200px;"><canvas id="pdfGauge" width="200" height="160"></canvas></div>
-                    </div>
-                    <div style="text-align:center; font-size:0.6rem; color:#3d6f8a; margin-top:16px; border-top:1px solid #d6e2ed; padding-top:10px;">
-                        Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA · G-20004428-4
-                    </div>
-                `;
-                document.body.appendChild(pdfContainer);
+                // Capturar el panel de resultados completo
+                const panel = document.getElementById('dashboardPanel');
+                const canvas = await html2canvas(panel, {
+                    scale: 2.5,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    allowTaint: true,
+                    logging: false,
+                    onclone: function(doc) {
+                        // Asegurar que las gráficas se rendericen correctamente
+                    }
+                });
 
-                // Gráficas para PDF
-                const radarCtx = document.getElementById('pdfRadar').getContext('2d');
-                const barCtx = document.getElementById('pdfBar').getContext('2d');
-                const donutCtx = document.getElementById('pdfDonut').getContext('2d');
-                const gaugeCtx = document.getElementById('pdfGauge').getContext('2d');
-
-                const radarData = charts.radar ? charts.radar.data : null;
-                const barData = charts.bar ? charts.bar.data : null;
-                const donutData = charts.donut ? charts.donut.data : null;
-                const gaugeData = charts.gauge ? charts.gauge.data : null;
-
-                if (radarData) new Chart(radarCtx, { type: 'radar', data: radarData, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
-                if (barData) new Chart(barCtx, { type: 'bar', data: barData, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 5 } } } });
-                if (donutData) new Chart(donutCtx, { type: 'doughnut', data: donutData, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
-                if (gaugeData) new Chart(gaugeCtx, { type: 'doughnut', data: gaugeData, options: { cutout: '75%', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
-
-                setTimeout(async () => {
-                    const canvas = await html2canvas(pdfContainer, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-                    const imgData = canvas.toDataURL('image/png');
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF('p', 'mm', 'a4');
-                    const imgWidth = 210;
-                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                    doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-                    doc.save('evaluacion_IMDAA.pdf');
-                    document.body.removeChild(pdfContainer);
-                }, 800);
-
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                // Calcular dimensiones para que quepa en una página A4
+                const imgWidth = 210; // mm
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                // Si la imagen es más alta que la página, ajustar
+                const maxHeight = 285; // mm (margen inferior)
+                let finalHeight = imgHeight;
+                let finalWidth = imgWidth;
+                if (imgHeight > maxHeight) {
+                    finalHeight = maxHeight;
+                    finalWidth = (imgWidth * maxHeight) / imgHeight;
+                }
+                
+                // Centrar la imagen en la página
+                const xOffset = (210 - finalWidth) / 2;
+                const yOffset = 10;
+                
+                // Agregar título y datos en la parte superior del PDF
+                doc.setFontSize(14);
+                doc.setTextColor(26, 90, 58);
+                doc.text('Evaluación de Desempeño - IMDAA', 105, 15, { align: 'center' });
+                doc.setFontSize(9);
+                doc.setTextColor(47, 91, 116);
+                doc.text(`Nombre: ${nombreInput.value || 'Sin nombre'}  |  Cédula: ${cedulaInput.value || 'Sin cédula'}  |  Cargo: ${cargoDeptoInput.value || 'Sin cargo'}  |  Perfil: ${getPerfilLabel(currentPerfil)}`, 105, 23, { align: 'center' });
+                
+                // Agregar la imagen capturada
+                doc.addImage(imgData, 'PNG', xOffset, yOffset + 10, finalWidth, finalHeight - 10);
+                
+                // Pie de página
+                doc.setFontSize(7);
+                doc.setTextColor(100, 100, 100);
+                doc.text('Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA · G-20004428-4', 105, 290, { align: 'center' });
+                doc.text(`Generado: ${new Date().toLocaleDateString('es-ES')}`, 105, 295, { align: 'center' });
+                
+                doc.save('evaluacion_IMDAA.pdf');
+                
             } catch (error) {
                 console.error('Error generando PDF:', error);
                 alert('❌ Error al generar el PDF. Intente nuevamente.');
             }
 
+            // Restaurar historial
             historialSection.style.display = originalDisplay;
         }
 
