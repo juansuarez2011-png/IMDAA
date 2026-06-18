@@ -138,14 +138,14 @@
         <div class="form-section">
             <h2>🧾 Factores y preguntas</h2>
             <div class="perfil-selector">
-                <label for="cargoSelect">📌 Perfil de evaluación</label>
+                <label for="cargoSelect">📌 Perfil Evaluador</label>
                 <select id="cargoSelect">
                     <option value="presidente">Presidente</option>
                     <option value="director">Director / Empleado</option>
                 </select>
             </div>
             <div class="perfil-info">
-                <span><strong>Perfil:</strong> <span id="perfilNombre">Presidente</span></span>
+                <span><strong>Perfil Evaluador:</strong> <span id="perfilNombre">Presidente</span></span>
                 <span><strong>Factores:</strong> <span id="perfilFactores">4 factores</span></span>
                 <span><strong>Peso total:</strong> 100%</span>
             </div>
@@ -200,7 +200,7 @@
         <h3>📋 Historial de evaluaciones guardadas</h3>
         <div style="overflow-x:auto;">
             <table>
-                <thead><tr><th>#</th><th>Nombre</th><th>Cédula</th><th>Cargo/Depto</th><th>Perfil</th><th>Fecha</th><th>Nota</th><th>Nivel</th><th>Acciones</th></tr></thead>
+                <thead><tr><th>#</th><th>Nombre</th><th>Cédula</th><th>Cargo/Depto</th><th>Perfil Evaluador</th><th>Fecha</th><th>Nota</th><th>Nivel</th><th>Acciones</th></tr></thead>
                 <tbody id="historialBody"></tbody>
             </table>
         </div>
@@ -429,6 +429,7 @@
 
             const satisfaccion = Math.min(5, Math.max(1, notaFinal));
             const niveles = ['Excelente', 'Bueno', 'Regular', 'Deficiente'];
+            const colores = ['#2d8f6f', '#6a9eb5', '#c09a5e', '#b15e5e'];
             const dataDonut = [0,0,0,0];
             if (satisfaccion >= 4.5) dataDonut[0] = 1;
             else if (satisfaccion >= 3.5) dataDonut[1] = 1;
@@ -437,8 +438,21 @@
             if (charts.donut) charts.donut.destroy();
             charts.donut = new Chart(document.getElementById('donutChart'), {
                 type: 'doughnut',
-                data: { labels: niveles, datasets: [{ data: dataDonut, backgroundColor: ['#1a5a3a','#6a9eb5','#c09a5e','#b15e5e'], borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } }
+                data: {
+                    labels: niveles,
+                    datasets: [{ data: dataDonut, backgroundColor: colores, borderWidth: 0 }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: true, 
+                    plugins: { 
+                        legend: { 
+                            display: true,
+                            position: 'bottom',
+                            labels: { font: { size: 9 }, boxWidth: 12, padding: 4 }
+                        }
+                    }
+                }
             });
 
             const gaugeVal = Math.min(100, (notaFinal / 5) * 100);
@@ -584,7 +598,7 @@
         }
 
         // ==============================================================
-        //  PDF - CON LOGO Y GRÁFICAS COMPLETAS EN UNA SOLA HOJA
+        //  PDF - CON LOGO, DATOS Y GRÁFICAS CON LEYENDA
         // ==============================================================
         async function descargarPDF() {
             if (!ultimoResultado) {
@@ -628,7 +642,7 @@
                         <div><strong style="color:#1a5a3a;">Nombre:</strong> ${nombre}</div>
                         <div><strong style="color:#1a5a3a;">Cédula:</strong> ${cedula}</div>
                         <div><strong style="color:#1a5a3a;">Cargo/Depto:</strong> ${cargo}</div>
-                        <div><strong style="color:#1a5a3a;">Perfil:</strong> ${perfil}</div>
+                        <div><strong style="color:#1a5a3a;">Perfil Evaluador:</strong> ${perfil}</div>
                     </div>
                     
                     <!-- TABLA -->
@@ -653,7 +667,7 @@
                     <div style="background:#e8f5ee; padding:6px 14px; border-radius:8px; display:flex; justify-content:space-between; flex-wrap:wrap; margin:6px 0; border-left:4px solid #1a5a3a; font-size:0.7rem;">
                         <span><strong>Nota global:</strong> ${ultimoResultado.notaFinal.toFixed(2)}</span>
                         <span><strong>Nivel:</strong> ${nivelConcepto.textContent}</span>
-                        <span><strong>Perfil:</strong> ${perfil}</span>
+                        <span><strong>Perfil Evaluador:</strong> ${perfil}</span>
                     </div>
                     
                     <!-- ESCALA -->
@@ -661,34 +675,41 @@
                         Escala: S (5) Sobresaliente · E (4) Excelente · B (3) Bueno · R (2) Regular · D (1) Deficiente
                     </div>
                     
-                    <!-- GRÁFICAS EN 2x2 MÁS PEQUEÑAS -->
+                    <!-- GRÁFICAS EN 2x2 CON LEYENDA EN LA DONA -->
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:4px;">
                         <div style="border:1px solid #e6edf5; border-radius:6px; padding:4px; background:#fafcfd;">
                             <p style="font-size:0.5rem; text-align:center; color:#2a5e7a; margin:0 0 2px 0; font-weight:600;">RADAR · COMPETENCIAS</p>
-                            <canvas id="pdfRadar" width="180" height="130"></canvas>
+                            <canvas id="pdfRadar" width="180" height="120"></canvas>
                         </div>
                         <div style="border:1px solid #e6edf5; border-radius:6px; padding:4px; background:#fafcfd;">
                             <p style="font-size:0.5rem; text-align:center; color:#2a5e7a; margin:0 0 2px 0; font-weight:600;">METAS · BARRA</p>
-                            <canvas id="pdfBar" width="180" height="130"></canvas>
+                            <canvas id="pdfBar" width="180" height="120"></canvas>
                         </div>
                         <div style="border:1px solid #e6edf5; border-radius:6px; padding:4px; background:#fafcfd;">
                             <p style="font-size:0.5rem; text-align:center; color:#2a5e7a; margin:0 0 2px 0; font-weight:600;">ANILLO · SATISFACCIÓN</p>
-                            <canvas id="pdfDonut" width="180" height="130"></canvas>
+                            <canvas id="pdfDonut" width="180" height="120"></canvas>
+                            <div style="display:flex; justify-content:center; gap:8px; font-size:0.5rem; margin-top:2px; flex-wrap:wrap;">
+                                <span><span style="display:inline-block; width:10px; height:10px; background:#2d8f6f; border-radius:50%;"></span> Excelente</span>
+                                <span><span style="display:inline-block; width:10px; height:10px; background:#6a9eb5; border-radius:50%;"></span> Bueno</span>
+                                <span><span style="display:inline-block; width:10px; height:10px; background:#c09a5e; border-radius:50%;"></span> Regular</span>
+                                <span><span style="display:inline-block; width:10px; height:10px; background:#b15e5e; border-radius:50%;"></span> Deficiente</span>
+                            </div>
                         </div>
                         <div style="border:1px solid #e6edf5; border-radius:6px; padding:4px; background:#fafcfd;">
                             <p style="font-size:0.5rem; text-align:center; color:#2a5e7a; margin:0 0 2px 0; font-weight:600;">TERMÓMETRO · GESTIÓN</p>
-                            <canvas id="pdfGauge" width="180" height="130"></canvas>
+                            <canvas id="pdfGauge" width="180" height="120"></canvas>
+                            <p style="font-size:0.45rem; text-align:center; color:#1a5a3a; margin:2px 0 0 0;">${Math.round((ultimoResultado.notaFinal/5)*100)}% de ejecución</p>
                         </div>
                     </div>
                     
                     <!-- PIE -->
-                    <div style="text-align:center; font-size:0.5rem; color:#3d6f8a; margin-top:8px; border-top:1px solid #d6e2ed; padding-top:6px;">
+                    <div style="text-align:center; font-size:0.5rem; color:#3d6f8a; margin-top:6px; border-top:1px solid #d6e2ed; padding-top:5px;">
                         IMDAA · G-20004428-4
                     </div>
                 `;
                 document.body.appendChild(pdfContainer);
 
-                // Renderizar gráficas en PDF con tamaño reducido
+                // Renderizar gráficas en PDF
                 const radarCtx = document.getElementById('pdfRadar').getContext('2d');
                 const barCtx = document.getElementById('pdfBar').getContext('2d');
                 const donutCtx = document.getElementById('pdfDonut').getContext('2d');
@@ -702,18 +723,28 @@
                 if (radarData) new Chart(radarCtx, { 
                     type: 'radar', 
                     data: radarData, 
-                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { r: { pointLabels: { font: { size: 8 } } } } } 
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { r: { pointLabels: { font: { size: 7 } } } } } 
                 });
                 if (barData) new Chart(barCtx, { 
                     type: 'bar', 
                     data: barData, 
                     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 5 } } } 
                 });
-                if (donutData) new Chart(donutCtx, { 
-                    type: 'doughnut', 
-                    data: donutData, 
-                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } 
-                });
+                if (donutData) {
+                    const donutChart = new Chart(donutCtx, { 
+                        type: 'doughnut', 
+                        data: donutData, 
+                        options: { 
+                            responsive: true, 
+                            maintainAspectRatio: true, 
+                            plugins: { 
+                                legend: { 
+                                    display: false
+                                }
+                            } 
+                        } 
+                    });
+                }
                 if (gaugeData) new Chart(gaugeCtx, { 
                     type: 'doughnut', 
                     data: gaugeData, 
