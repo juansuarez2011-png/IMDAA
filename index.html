@@ -12,12 +12,11 @@
         body { background: #eef3f7; padding: 20px 12px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         .container { max-width: 1400px; width: 100%; background: white; border-radius: 28px; box-shadow: 0 20px 40px -12px rgba(0,20,30,0.3); padding: 22px 25px; }
         
-        /* HEADER - LOGO MÁS GRANDE */
+        /* HEADER - LOGO SIN FONDO VERDE */
         .header { display: flex; align-items: center; gap: 20px; border-bottom: 3px solid #1a5a3a; padding-bottom: 14px; margin-bottom: 22px; flex-wrap: wrap; }
-        .header .logo { flex-shrink: 0; width: 110px; height: 110px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #1a5a3a; box-shadow: 0 4px 10px rgba(26,90,58,0.3); border: 4px solid #e8c84a; }
-        .header .logo img { width: 100%; height: 100%; object-fit: cover; }
-        .header .logo-placeholder { color: white; font-weight: 900; font-size: 1.4rem; text-align: center; line-height: 1.2; padding: 4px; }
-        .header .logo-placeholder small { font-size: 0.6rem; display: block; }
+        .header .logo { flex-shrink: 0; width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid #e8c84a; background: transparent; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .header .logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+        .header .logo-placeholder { display: none; }
         .header .titulo { flex: 1; }
         .header .titulo h1 { font-size: 1.8rem; font-weight: 600; color: #1a5a3a; }
         .header .titulo small { font-size: 0.85rem; color: #2f5b74; display: block; font-weight: 400; }
@@ -106,7 +105,7 @@
         
         @media (max-width: 480px) {
             .container { padding: 14px 12px; }
-            .header .logo { width: 70px; height: 70px; }
+            .header .logo { width: 80px; height: 80px; }
             .header .titulo h1 { font-size: 1.2rem; }
             .btn { font-size: 0.75rem; padding: 8px 12px; min-width: 70px; }
             .datos-personales { grid-template-columns: 1fr; }
@@ -115,10 +114,10 @@
 </head>
 <body>
 <div class="container" id="app">
-    <!-- HEADER con LOGO MÁS GRANDE -->
+    <!-- HEADER con LOGO SIN FONDO -->
     <div class="header">
         <div class="logo" id="logoContainer">
-            <img id="logoImg" src="LOGO.png" alt="IMDAA" style="display:none;">
+            <img id="logoImg" src="LOGO.png" alt="IMDAA">
             <div id="logoPlaceholder" class="logo-placeholder">IMDAA<br><small>AGROPECUARIO</small></div>
         </div>
         <div class="titulo">
@@ -135,7 +134,7 @@
         <div class="campo"><label>🏢 Cargo / Departamento</label><input type="text" id="cargoDeptoInput" placeholder="Ej. Barrendero"></div>
     </div>
 
-    <!-- GRID PRINCIPAL - TODO EL CONTENIDO PARA PDF -->
+    <!-- GRID PRINCIPAL -->
     <div class="grid-2" id="contenidoPDF">
         <div class="form-section">
             <h2>🧾 Factores y preguntas</h2>
@@ -269,17 +268,18 @@
         fechaActual.textContent = new Date().toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
 
         // ==============================================================
-        //  LOGO
+        //  LOGO - SIN FONDO VERDE
         // ==============================================================
         const logoImg = document.getElementById('logoImg');
         const logoPlaceholder = document.getElementById('logoPlaceholder');
+        
         logoImg.src = 'LOGO.png?' + Date.now();
         logoImg.onload = function() {
             logoPlaceholder.style.display = 'none';
             logoImg.style.display = 'block';
         };
         logoImg.onerror = function() {
-            logoPlaceholder.style.display = 'flex';
+            logoPlaceholder.style.display = 'block';
             logoImg.style.display = 'none';
         };
 
@@ -453,7 +453,7 @@
         }
 
         // ==============================================================
-        //  GUARDAR (con respuestas)
+        //  GUARDAR
         // ==============================================================
         function guardarEvaluacion() {
             const nombre = nombreInput.value.trim() || 'Sin nombre';
@@ -495,7 +495,7 @@
         }
 
         // ==============================================================
-        //  CARGAR EVALUACIÓN (restaura todos los datos)
+        //  CARGAR EVALUACIÓN
         // ==============================================================
         function cargarEvaluacion(id) {
             const entry = historial.find(h => h.id === id);
@@ -504,17 +504,14 @@
                 return;
             }
             
-            // Restaurar datos personales
             nombreInput.value = entry.nombre;
             cedulaInput.value = entry.cedula;
             cargoDeptoInput.value = entry.cargoDepto;
             
-            // Restaurar perfil
             const perfilKey = entry.perfilKey || getPerfilKey(entry.perfil);
             cargoSelect.value = perfilKey;
             currentPerfil = perfilKey;
             
-            // Restaurar respuestas y recalcular
             renderPreguntas(entry.respuestas);
             perfilNombre.textContent = getPerfilLabel(perfilKey);
             
@@ -597,7 +594,6 @@
                 return;
             }
 
-            // Ocultar historial
             const historialSection = document.getElementById('historialSection');
             const originalDisplay = historialSection.style.display;
             historialSection.style.display = 'none';
@@ -605,7 +601,6 @@
             await new Promise(r => setTimeout(r, 300));
 
             try {
-                // Capturar TODO el contenido (formulario + resultados)
                 const contenido = document.getElementById('contenidoPDF');
                 const canvas = await html2canvas(contenido, {
                     scale: 2.5,
@@ -636,7 +631,6 @@
                 const xOffset = (210 - finalWidth) / 2;
                 const yOffset = 8;
                 
-                // Título en el PDF
                 doc.setFontSize(12);
                 doc.setTextColor(26, 90, 58);
                 doc.text('Evaluación de Desempeño - IMDAA', 105, 12, { align: 'center' });
