@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>Evaluación de Desempeño · IMDAA</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: #eef3f7; padding: 20px 12px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .container { max-width: 1400px; width: 100%; background: white; border-radius: 28px; box-shadow: 0 20px 40px -12px rgba(0,20,30,0.3); padding: 22px 25px; }
+        
+        /* HEADER */
+        .header { display: flex; align-items: center; gap: 18px; border-bottom: 3px solid #1a5a3a; padding-bottom: 14px; margin-bottom: 22px; flex-wrap: wrap; }
+        .header .logo { flex-shrink: 0; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #1a5a3a; box-shadow: 0 4px 10px rgba(26,90,58,0.3); border: 3px solid #e8c84a; }
+        .header .logo img { width: 100%; height: 100%; object-fit: cover; }
+        .header .logo-placeholder { color: white; font-weight: 700; font-size: 1.2rem; text-align: center; line-height: 1.2; padding: 4px; }
+        .header .logo-placeholder small { font-size: 0.5rem; display: block; }
+        .header .titulo { flex: 1; }
+        .header .titulo h1 { font-size: 1.7rem; font-weight: 600; color: #1a5a3a; }
+        .header .titulo small { font-size: 0.8rem; color: #2f5b74; display: block; font-weight: 400; }
+        .header .fecha-demo { font-size: 0.75rem; color: #2a5e7a; background: #e8f0f7; padding: 6px 16px; border-radius: 40px; }
+        
+        /* DATOS PERSONALES */
+        .datos-personales { background: #f0f7f2; border-radius: 18px; padding: 16px 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px 20px; margin-bottom: 22px; border: 1px solid #c5dccd; }
+        .datos-personales .campo { display: flex; flex-direction: column; gap: 3px; }
+        .datos-personales label { font-weight: 600; font-size: 0.75rem; color: #1a5a3a; letter-spacing: 0.3px; text-transform: uppercase; }
+        .datos-personales input { padding: 9px 14px; border-radius: 40px; border: 1px solid #b8cfc5; font-size: 0.9rem; background: white; transition: 0.15s; width: 100%; }
+        .datos-personales input:focus { border-color: #1a5a3a; box-shadow: 0 0 0 3px rgba(26,90,58,0.15); outline: none; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1.1fr; gap: 28px; }
+        @media (max-width: 1000px) { .grid-2 { grid-template-columns: 1fr; } }
+        
+        .form-section { background: #f9fbfd; padding: 16px 18px; border-radius: 22px; border: 1px solid #e2ebf3; }
+        .form-section h2 { font-size: 1.1rem; font-weight: 500; color: #1b3e54; margin-bottom: 12px; }
+        
+        .perfil-selector { background: white; padding: 12px 16px; border-radius: 18px; margin-bottom: 16px; border: 1px solid #d6e2ed; }
+        .perfil-selector label { font-weight: 500; color: #1a4056; display: block; margin-bottom: 3px; font-size: 0.85rem; }
+        .perfil-selector select { width: 100%; padding: 9px 14px; border-radius: 40px; border: 1px solid #bccddb; background: white; font-size: 0.95rem; font-weight: 500; color: #0b2a3b; outline: none; }
+        .perfil-selector select:focus { border-color: #1a5a3a; box-shadow: 0 0 0 3px rgba(26,90,58,0.2); }
+        
+        .factor-group { background: white; border-radius: 16px; padding: 6px 0 2px 0; margin-bottom: 14px; border: 1px solid #e2ebf3; }
+        .factor-title { font-weight: 600; color: #15384d; padding: 0 14px 8px 14px; border-bottom: 1px dashed #d6e2ed; display: flex; justify-content: space-between; font-size: 0.9rem; }
+        .factor-title span { background: #e4eef8; padding: 2px 12px; border-radius: 40px; font-size: 0.65rem; font-weight: 600; color: #1b5270; }
+        .pregunta-item { padding: 7px 14px 9px 14px; border-bottom: 1px solid #edf3f8; }
+        .pregunta-item:last-child { border-bottom: none; }
+        .pregunta-item p { font-weight: 500; color: #1b4056; font-size: 0.8rem; margin-bottom: 4px; }
+        .pregunta-item .significado { font-size: 0.6rem; color: #2a5e7a; margin-bottom: 4px; background: #eef5fa; padding: 2px 10px; border-radius: 30px; display: inline-block; }
+        .opciones { display: flex; flex-wrap: wrap; gap: 4px 10px; }
+        .opciones label { display: flex; align-items: center; gap: 3px; font-size: 0.75rem; background: #f2f7fc; padding: 2px 10px 2px 6px; border-radius: 30px; cursor: pointer; transition: 0.1s; }
+        .opciones label:hover { background: #dce8f2; }
+        .opciones input[type="radio"] { accent-color: #1a5a3a; width: 13px; height: 13px; }
+        
+        .acciones-botones { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+        .btn { border: none; color: white; font-weight: 600; padding: 10px 18px; border-radius: 60px; font-size: 0.85rem; cursor: pointer; transition: 0.15s; flex: 1 1 auto; min-width: 100px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-primary { background: #1a5a3a; box-shadow: 0 4px 8px rgba(26,90,58,0.2); }
+        .btn-primary:hover { background: #0f4028; }
+        .btn-success { background: #1f8f6d; box-shadow: 0 4px 8px rgba(26,120,85,0.2); }
+        .btn-success:hover { background: #14755a; }
+        .btn-warning { background: #b68b3a; box-shadow: 0 4px 8px rgba(150,110,30,0.2); }
+        .btn-warning:hover { background: #9a742e; }
+        .btn-danger { background: #b15e5e; box-shadow: 0 4px 8px rgba(150,50,50,0.2); }
+        .btn-danger:hover { background: #914a4a; }
+        .btn-info { background: #2a7a9c; box-shadow: 0 4px 8px rgba(26,85,120,0.2); }
+        .btn-info:hover { background: #1a5f7a; }
+        
+        .dashboard { background: #f9fbfd; border-radius: 22px; padding: 14px 14px 8px 14px; border: 1px solid #e2ebf3; }
+        .dashboard h2 { font-size: 1.1rem; font-weight: 500; color: #1b3e54; margin-bottom: 8px; }
+        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        @media (max-width: 600px) { .chart-grid { grid-template-columns: 1fr; } }
+        .chart-card { background: white; border-radius: 14px; padding: 8px 8px 4px; border: 1px solid #e6edf5; }
+        .chart-card h4 { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.4px; color: #2a5e7a; margin-bottom: 3px; text-align: center; }
+        .chart-card canvas { width: 100% !important; height: auto !important; max-height: 110px; }
+        
+        .resultado-final { background: #e2edf7; border-radius: 16px; padding: 12px 16px; margin: 8px 0 8px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+        .resultado-final .nota { font-weight: 700; font-size: 1.4rem; color: #063246; }
+        .resultado-final .desc { font-weight: 500; color: #1a4d66; font-size: 0.9rem; }
+        .badge { background: #1a5a3a; color: white; padding: 4px 14px; border-radius: 40px; font-weight: 600; font-size: 0.75rem; }
+        
+        .tabla-eval { width: 100%; border-collapse: collapse; margin: 6px 0 8px; font-size: 0.7rem; }
+        .tabla-eval th { background: #dce8f2; color: #15384d; padding: 5px 6px; text-align: left; font-weight: 600; }
+        .tabla-eval td { padding: 4px 8px; border-bottom: 1px solid #dde7f0; }
+        .tabla-eval tr:last-child td { border-bottom: none; }
+        
+        .leyenda { display: flex; flex-wrap: wrap; gap: 3px 12px; margin: 3px 0; font-size: 0.65rem; color: #1f5270; }
+        .leyenda span { display: flex; align-items: center; gap: 3px; }
+        .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 20px; }
+        
+        .tabla-historial { margin-top: 22px; border-top: 2px solid #cbdbe9; padding-top: 16px; }
+        .tabla-historial h3 { font-size: 0.95rem; color: #1b3e54; margin-bottom: 8px; }
+        .tabla-historial table { width: 100%; border-collapse: collapse; font-size: 0.7rem; background: #f9fbfd; border-radius: 14px; overflow: hidden; }
+        .tabla-historial th { background: #d0dfeb; padding: 6px 8px; text-align: left; }
+        .tabla-historial td { padding: 5px 8px; border-bottom: 1px solid #dde7f0; }
+        .tabla-historial .btn-peq { padding: 2px 10px; border-radius: 30px; font-size: 0.6rem; cursor: pointer; border: none; color: white; font-weight: 600; }
+        .btn-peq-del { background: #b15e5e; }
+        .btn-peq-del:hover { background: #8f4747; }
+        .btn-peq-load { background: #2a7a9c; }
+        .btn-peq-load:hover { background: #1a5f7a; }
+        
+        .footer-peq { margin-top: 12px; font-size: 0.6rem; color: #3d6f8a; text-align: center; border-top: 1px solid #d6e2ed; padding-top: 10px; }
+        .mensaje-vacio { text-align: center; color: #6a8fa5; padding: 10px; }
+        .perfil-info { display: flex; gap: 12px; flex-wrap: wrap; background: #e8f0f7; border-radius: 12px; padding: 8px 14px; margin-bottom: 12px; font-size: 0.75rem; color: #1a4056; }
+        .perfil-info strong { color: #0b2a3b; }
+        
+        @media (max-width: 480px) {
+            .container { padding: 14px 12px; }
+            .header .logo { width: 55px; height: 55px; }
+            .header .titulo h1 { font-size: 1.2rem; }
+            .btn { font-size: 0.75rem; padding: 8px 12px; min-width: 70px; }
+            .datos-personales { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="app">
+    <!-- HEADER con LOGO -->
+    <div class="header">
+        <div class="logo" id="logoContainer">
+            <img id="logoImg" src="logoimdaa.png" alt="IMDAA" style="display:none;" onerror="this.style.display='none';document.getElementById('logoPlaceholder').style.display='flex'">
+            <div id="logoPlaceholder" class="logo-placeholder">IMDAA<br><small>AGROPECUARIO</small></div>
+        </div>
+        <div class="titulo">
+            <h1>Evaluación de Desempeño</h1>
+            <small>Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA</small>
+        </div>
+        <div class="fecha-demo">📅 <span id="fechaActual"></span></div>
+    </div>
+
+    <!-- DATOS PERSONALES -->
+    <div class="datos-personales">
+        <div class="campo"><label>👤 Nombre completo</label><input type="text" id="nombreInput" placeholder="Ej. Juan Ocando"></div>
+        <div class="campo"><label>🪪 Cédula / ID</label><input type="text" id="cedulaInput" placeholder="Ej. V-39399939"></div>
+        <div class="campo"><label>🏢 Cargo / Departamento</label><input type="text" id="cargoDeptoInput" placeholder="Ej. Barrendero"></div>
+    </div>
+
+    <!-- GRID PRINCIPAL -->
+    <div class="grid-2">
+        <div class="form-section">
+            <h2>🧾 Factores y preguntas</h2>
+            <div class="perfil-selector">
+                <label for="cargoSelect">📌 Perfil de evaluación</label>
+                <select id="cargoSelect">
+                    <option value="presidente">Presidente</option>
+                    <option value="director">Director / Empleado</option>
+                </select>
+            </div>
+            <div class="perfil-info">
+                <span><strong>Perfil:</strong> <span id="perfilNombre">Presidente</span></span>
+                <span><strong>Factores:</strong> <span id="perfilFactores">4 factores</span></span>
+                <span><strong>Peso total:</strong> 100%</span>
+            </div>
+            <div id="preguntasContainer"></div>
+            <div class="acciones-botones">
+                <button class="btn btn-primary" id="calcularBtn">📊 Calcular</button>
+                <button class="btn btn-success" id="guardarBtn">💾 Guardar</button>
+                <button class="btn btn-warning" id="nuevoBtn">🔄 Nuevo</button>
+                <button class="btn btn-danger" id="pdfBtn">📄 PDF</button>
+            </div>
+            <div style="margin-top:5px; font-size:0.6rem; color:#2e6987; text-align:right;">
+                Escala: <strong>S</strong>(5) Sobresaliente · <strong>E</strong>(4) Excelente · <strong>B</strong>(3) Bueno · <strong>R</strong>(2) Regular · <strong>D</strong>(1) Deficiente
+            </div>
+        </div>
+
+        <div class="dashboard" id="dashboardPanel">
+            <h2>📈 Resultados</h2>
+            <div id="resultadoPanel">
+                <div class="resultado-final">
+                    <span class="desc">Evaluación global</span>
+                    <span class="nota" id="notaGlobal">—</span>
+                    <span class="badge" id="nivelConcepto">Sin evaluar</span>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="tabla-eval" id="tablaResultados">
+                        <thead><tr><th>Factor</th><th>Peso</th><th>Nivel</th><th>Valor</th></tr></thead>
+                        <tbody id="tablaBody">
+                            <tr><td colspan="4" class="mensaje-vacio">Complete el formulario y presione "Calcular"</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="leyenda">
+                    <span><span class="color-dot" style="background:#1b6b4a;"></span> S (5) Sobresaliente</span>
+                    <span><span class="color-dot" style="background:#2d8f6f;"></span> E (4) Excelente</span>
+                    <span><span class="color-dot" style="background:#6a9eb5;"></span> B (3) Bueno</span>
+                    <span><span class="color-dot" style="background:#c09a5e;"></span> R (2) Regular</span>
+                    <span><span class="color-dot" style="background:#b15e5e;"></span> D (1) Deficiente</span>
+                </div>
+            </div>
+            <div class="chart-grid">
+                <div class="chart-card"><h4>🎯 Radar · Competencias</h4><canvas id="radarChart" height="110"></canvas></div>
+                <div class="chart-card"><h4>📊 Metas · Barra</h4><canvas id="barChart" height="110"></canvas></div>
+                <div class="chart-card"><h4>🧩 Anillo · Satisfacción</h4><canvas id="donutChart" height="110"></canvas></div>
+                <div class="chart-card"><h4>🌡️ Termómetro · Gestión</h4><canvas id="gaugeChart" height="110"></canvas></div>
+            </div>
+            <div class="footer-peq">Basado en el manual de evaluación · Curva de desempeño</div>
+        </div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="tabla-historial" id="historialSection">
+        <h3>📋 Historial de evaluaciones guardadas</h3>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead><tr><th>#</th><th>Nombre</th><th>Cédula</th><th>Cargo/Depto</th><th>Perfil</th><th>Fecha</th><th>Nota</th><th>Nivel</th><th>Acciones</th></tr></thead>
+                <tbody id="historialBody"></tbody>
+            </table>
+        </div>
+        <div style="margin-top:8px;">
+            <button class="btn btn-danger" id="borrarTodoBtn" style="padding:6px 16px; font-size:0.7rem; flex:0 1 auto;">🗑️ Borrar historial</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ==============================================================
+        //  FACTORES Y PREGUNTAS
+        // ==============================================================
+        const FACTORES_PRESIDENTE = [
+            { id: 'metas', label: 'Cumplimiento de Metas', peso: 30 },
+            { id: 'personas', label: 'Gestión de Personas', peso: 30 },
+            { id: 'competencias', label: 'Competencias para el Cargo', peso: 25 },
+            { id: 'responsabilidad', label: 'Responsabilidad Laboral', peso: 15 }
+        ];
+        const FACTORES_DIRECTOR = [
+            { id: 'metas', label: 'Cumplimiento de Metas', peso: 30 },
+            { id: 'personas', label: 'Gestión de Personas', peso: 25 },
+            { id: 'competencias', label: 'Competencias Técnicas', peso: 25 },
+            { id: 'responsabilidad', label: 'Responsabilidad y Normas', peso: 20 }
+        ];
+
+        const PREGUNTAS = {
+            metas: ['Logro de resultados del área', 'Cumplimiento de plazos', 'Optimización de costos'],
+            personas: ['Capacidad de influencia', 'Guía y planificación', 'Retroalimentación'],
+            competencias: ['Conocimientos técnicos', 'Habilidades interpersonales', 'Capacidad de análisis'],
+            responsabilidad: ['Normas de seguridad', 'Valores organizacionales', 'Protocolos']
+        };
+
+        // ==============================================================
+        //  ESTADO
+        // ==============================================================
+        let currentPerfil = 'presidente';
+        let factoresActuales = FACTORES_PRESIDENTE;
+        let respuestas = {};
+        let historial = JSON.parse(localStorage.getItem('evalHistorial')) || [];
+        let charts = { radar: null, bar: null, donut: null, gauge: null };
+        let ultimoResultado = null;
+
+        // DOM
+        const cargoSelect = document.getElementById('cargoSelect');
+        const preguntasContainer = document.getElementById('preguntasContainer');
+        const calcularBtn = document.getElementById('calcularBtn');
+        const guardarBtn = document.getElementById('guardarBtn');
+        const nuevoBtn = document.getElementById('nuevoBtn');
+        const pdfBtn = document.getElementById('pdfBtn');
+        const tablaBody = document.getElementById('tablaBody');
+        const notaGlobal = document.getElementById('notaGlobal');
+        const nivelConcepto = document.getElementById('nivelConcepto');
+        const historialBody = document.getElementById('historialBody');
+        const borrarTodoBtn = document.getElementById('borrarTodoBtn');
+        const nombreInput = document.getElementById('nombreInput');
+        const cedulaInput = document.getElementById('cedulaInput');
+        const cargoDeptoInput = document.getElementById('cargoDeptoInput');
+        const fechaActual = document.getElementById('fechaActual');
+        const perfilNombre = document.getElementById('perfilNombre');
+        const perfilFactores = document.getElementById('perfilFactores');
+
+        fechaActual.textContent = new Date().toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
+
+        // Logo: intentar cargar logoimdaa.png, si falla mostrar placeholder
+        const logoImg = document.getElementById('logoImg');
+        const logoPlaceholder = document.getElementById('logoPlaceholder');
+        logoImg.onload = function() {
+            logoPlaceholder.style.display = 'none';
+            logoImg.style.display = 'block';
+        };
+        logoImg.onerror = function() {
+            logoPlaceholder.style.display = 'flex';
+            logoImg.style.display = 'none';
+        };
+        // Forzar recarga del logo
+        logoImg.src = 'logoimdaa.png?' + Date.now();
+
+        // ==============================================================
+        //  FUNCIONES AUXILIARES
+        // ==============================================================
+        function nivelValor(nivel) { const map = { 'S':5,'E':4,'B':3,'R':2,'D':1 }; return map[nivel] || 0; }
+        function nivelConceptoText(valor) {
+            if (valor >= 4.5) return 'Sobresaliente (S)';
+            if (valor >= 3.5) return 'Excelente (E)';
+            if (valor >= 2.5) return 'Bueno (B)';
+            if (valor >= 1.5) return 'Regular (R)';
+            return 'Deficiente (D)';
+        }
+        function limpiarCanvas(id) {
+            const canvas = document.getElementById(id);
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+        function getPerfilLabel(val) {
+            const map = { 'presidente': 'Presidente', 'director': 'Director / Empleado' };
+            return map[val] || val;
+        }
+        function getPerfilKey(label) {
+            const map = { 'Presidente': 'presidente', 'Director / Empleado': 'director' };
+            return map[label] || 'presidente';
+        }
+
+        // ==============================================================
+        //  RENDER PREGUNTAS
+        // ==============================================================
+        function renderPreguntas(restoreData) {
+            const perfil = cargoSelect.value;
+            currentPerfil = perfil;
+            factoresActuales = (perfil === 'presidente') ? FACTORES_PRESIDENTE : FACTORES_DIRECTOR;
+
+            perfilNombre.textContent = getPerfilLabel(perfil);
+            perfilFactores.textContent = factoresActuales.length + ' factores';
+
+            let html = '';
+            factoresActuales.forEach(factor => {
+                const preguntas = PREGUNTAS[factor.id] || ['Pregunta general'];
+                html += `<div class="factor-group"><div class="factor-title">${factor.label} <span>${factor.peso}%</span></div>`;
+                preguntas.forEach((preg, idx) => {
+                    const name = `${factor.id}_${idx}`;
+                    const savedVal = (restoreData && restoreData[factor.id] && restoreData[factor.id][idx]) ? restoreData[factor.id][idx] : '';
+                    html += `<div class="pregunta-item">
+                        <p>${preg}</p>
+                        <div class="significado">S: Sobresaliente · E: Excelente · B: Bueno · R: Regular · D: Deficiente</div>
+                        <div class="opciones">`;
+                    ['S','E','B','R','D'].forEach(letra => {
+                        const checked = (savedVal === letra) ? 'checked' : '';
+                        html += `<label><input type="radio" name="${name}" value="${letra}" ${checked}> ${letra}</label>`;
+                    });
+                    html += `</div></div>`;
+                });
+                html += `</div>`;
+            });
+            preguntasContainer.innerHTML = html;
+            recopilarRespuestas();
+            
+            if (restoreData) {
+                setTimeout(() => calcularResultados(), 200);
+            }
+        }
+
+        function recopilarRespuestas() {
+            respuestas = {};
+            factoresActuales.forEach(factor => {
+                const preguntas = PREGUNTAS[factor.id] || ['Pregunta general'];
+                respuestas[factor.id] = {};
+                preguntas.forEach((_, idx) => {
+                    const name = `${factor.id}_${idx}`;
+                    const el = document.querySelector(`input[name="${name}"]:checked`);
+                    respuestas[factor.id][idx] = el ? el.value : null;
+                });
+            });
+        }
+
+        // ==============================================================
+        //  CALCULAR
+        // ==============================================================
+        function calcularResultados() {
+            recopilarRespuestas();
+            const resultados = factoresActuales.map(factor => {
+                const preguntas = PREGUNTAS[factor.id] || ['Pregunta general'];
+                const values = preguntas.map((_, idx) => {
+                    const val = respuestas[factor.id]?.[idx];
+                    return val ? nivelValor(val) : 0;
+                });
+                const count = values.filter(v => v > 0).length;
+                const promedio = count > 0 ? (values.reduce((a,b) => a+b, 0) / count) : 0;
+                const ponderado = (promedio / 5) * factor.peso;
+                return {
+                    factorId: factor.id,
+                    label: factor.label,
+                    peso: factor.peso,
+                    promedio: promedio,
+                    ponderado: ponderado,
+                    nivel: (promedio >= 4.5) ? 'S' : (promedio >= 3.5) ? 'E' : (promedio >= 2.5) ? 'B' : (promedio >= 1.5) ? 'R' : 'D'
+                };
+            });
+
+            const totalPonderado = resultados.reduce((acc, r) => acc + r.ponderado, 0);
+            const notaFinal = totalPonderado / 100 * 5;
+            const nivelFinal = (notaFinal >= 4.5) ? 'S' : (notaFinal >= 3.5) ? 'E' : (notaFinal >= 2.5) ? 'B' : (notaFinal >= 1.5) ? 'R' : 'D';
+
+            let tablaHtml = '';
+            resultados.forEach(r => {
+                tablaHtml += `<tr><td>${r.label}</td><td>${r.peso}%</td><td>${r.nivel}</td><td>${r.promedio.toFixed(2)}</td></tr>`;
+            });
+            tablaBody.innerHTML = tablaHtml;
+            notaGlobal.textContent = notaFinal.toFixed(2);
+            nivelConcepto.textContent = nivelConceptoText(notaFinal) + ` (${nivelFinal})`;
+
+            ultimoResultado = { resultados, notaFinal, nivelFinal, perfil: currentPerfil };
+            generarGraficas(resultados, notaFinal, nivelFinal);
+            return { resultados, notaFinal, nivelFinal };
+        }
+
+        // ==============================================================
+        //  GRÁFICAS
+        // ==============================================================
+        function generarGraficas(resultados, notaFinal, nivelFinal) {
+            const radarLabels = ['Metas', 'Personas/Gestión', 'Competencias', 'Responsabilidad'];
+            const radarData = resultados.map(r => r.promedio);
+            while (radarData.length < 4) radarData.push(0);
+            if (charts.radar) charts.radar.destroy();
+            charts.radar = new Chart(document.getElementById('radarChart'), {
+                type: 'radar',
+                data: {
+                    labels: radarLabels.slice(0, resultados.length),
+                    datasets: [{ label: 'Nivel actual', data: radarData.slice(0, resultados.length),
+                        backgroundColor: 'rgba(26,90,58,0.15)', borderColor: '#1a5a3a', pointBackgroundColor: '#1a5a3a', fill: true }]
+                },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } }
+            });
+
+            const metaResult = resultados.find(r => r.factorId === 'metas');
+            const metaVal = metaResult ? metaResult.promedio : 0;
+            if (charts.bar) charts.bar.destroy();
+            charts.bar = new Chart(document.getElementById('barChart'), {
+                type: 'bar',
+                data: { labels: ['Cumplimiento Metas'], datasets: [{ label: 'Nivel (1-5)', data: [metaVal], backgroundColor: '#1a5a3a', borderRadius: 6 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 5 } } }
+            });
+
+            const satisfaccion = Math.min(5, Math.max(1, notaFinal));
+            const niveles = ['Excelente', 'Bueno', 'Regular', 'Deficiente'];
+            const dataDonut = [0,0,0,0];
+            if (satisfaccion >= 4.5) dataDonut[0] = 1;
+            else if (satisfaccion >= 3.5) dataDonut[1] = 1;
+            else if (satisfaccion >= 2.5) dataDonut[2] = 1;
+            else dataDonut[3] = 1;
+            if (charts.donut) charts.donut.destroy();
+            charts.donut = new Chart(document.getElementById('donutChart'), {
+                type: 'doughnut',
+                data: { labels: niveles, datasets: [{ data: dataDonut, backgroundColor: ['#1a5a3a','#6a9eb5','#c09a5e','#b15e5e'], borderWidth: 0 }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } }
+            });
+
+            const gaugeVal = Math.min(100, (notaFinal / 5) * 100);
+            if (charts.gauge) charts.gauge.destroy();
+            charts.gauge = new Chart(document.getElementById('gaugeChart'), {
+                type: 'doughnut',
+                data: { labels: ['Ejecución', 'Restante'], datasets: [{ data: [gaugeVal, 100 - gaugeVal], backgroundColor: ['#1a5a3a','#d6e2ed'], borderWidth: 0 }] },
+                options: { cutout: '75%', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } }
+            });
+        }
+
+        // ==============================================================
+        //  GUARDAR
+        // ==============================================================
+        function guardarEvaluacion() {
+            const nombre = nombreInput.value.trim() || 'Sin nombre';
+            const cedula = cedulaInput.value.trim() || 'Sin cédula';
+            const cargoDepto = cargoDeptoInput.value.trim() || 'Sin cargo';
+            if (!ultimoResultado) {
+                alert('⚠️ Primero calcule la evaluación con el botón "Calcular".');
+                return;
+            }
+            
+            const respuestasGuardadas = {};
+            factoresActuales.forEach(factor => {
+                const preguntas = PREGUNTAS[factor.id] || ['Pregunta general'];
+                respuestasGuardadas[factor.id] = {};
+                preguntas.forEach((_, idx) => {
+                    const name = `${factor.id}_${idx}`;
+                    const el = document.querySelector(`input[name="${name}"]:checked`);
+                    respuestasGuardadas[factor.id][idx] = el ? el.value : null;
+                });
+            });
+
+            const entry = {
+                id: Date.now(),
+                nombre,
+                cedula,
+                cargoDepto,
+                perfil: getPerfilLabel(currentPerfil),
+                perfilKey: currentPerfil,
+                fecha: new Date().toLocaleDateString('es-ES'),
+                nota: ultimoResultado.notaFinal.toFixed(2),
+                nivel: ultimoResultado.nivelFinal,
+                respuestas: respuestasGuardadas,
+                detalle: ultimoResultado.resultados.map(r => `${r.label}: ${r.nivel} (${r.promedio.toFixed(2)})`).join(' | ')
+            };
+            historial.push(entry);
+            localStorage.setItem('evalHistorial', JSON.stringify(historial));
+            renderHistorial();
+            alert('✅ Evaluación guardada correctamente.');
+        }
+
+        // ==============================================================
+        //  CARGAR EVALUACIÓN
+        // ==============================================================
+        function cargarEvaluacion(id) {
+            const entry = historial.find(h => h.id === id);
+            if (!entry) {
+                alert('❌ No se encontró la evaluación.');
+                return;
+            }
+            
+            nombreInput.value = entry.nombre;
+            cedulaInput.value = entry.cedula;
+            cargoDeptoInput.value = entry.cargoDepto;
+            
+            const perfilKey = entry.perfilKey || getPerfilKey(entry.perfil);
+            cargoSelect.value = perfilKey;
+            currentPerfil = perfilKey;
+            
+            renderPreguntas(entry.respuestas);
+            perfilNombre.textContent = getPerfilLabel(perfilKey);
+            
+            alert('✅ Datos cargados correctamente. Puede modificar y generar un nuevo PDF.');
+        }
+
+        // ==============================================================
+        //  RENDER HISTORIAL
+        // ==============================================================
+        function renderHistorial() {
+            if (historial.length === 0) {
+                historialBody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#6a8fa5; padding:10px;">No hay evaluaciones guardadas</td></tr>`;
+                return;
+            }
+            let html = '';
+            historial.forEach((item, index) => {
+                html += `<tr>
+                    <td>${index + 1}</td>
+                    <td>${item.nombre}</td>
+                    <td>${item.cedula}</td>
+                    <td>${item.cargoDepto}</td>
+                    <td>${item.perfil || '-'}</td>
+                    <td>${item.fecha}</td>
+                    <td>${item.nota}</td>
+                    <td>${item.nivel}</td>
+                    <td>
+                        <button class="btn-peq btn-peq-load" data-id="${item.id}" data-action="load">Cargar</button>
+                        <button class="btn-peq btn-peq-del" data-id="${item.id}" data-action="delete">Eliminar</button>
+                    </td>
+                </tr>`;
+            });
+            historialBody.innerHTML = html;
+            
+            document.querySelectorAll('.btn-peq').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = Number(this.dataset.id);
+                    const action = this.dataset.action;
+                    if (action === 'delete') {
+                        historial = historial.filter(h => h.id !== id);
+                        localStorage.setItem('evalHistorial', JSON.stringify(historial));
+                        renderHistorial();
+                    } else if (action === 'load') {
+                        cargarEvaluacion(id);
+                    }
+                });
+            });
+        }
+
+        function borrarHistorial() {
+            if (confirm('¿Eliminar todo el historial?')) {
+                historial = [];
+                localStorage.setItem('evalHistorial', JSON.stringify(historial));
+                renderHistorial();
+            }
+        }
+
+        // ==============================================================
+        //  NUEVO
+        // ==============================================================
+        function nuevoFormulario() {
+            nombreInput.value = '';
+            cedulaInput.value = '';
+            cargoDeptoInput.value = '';
+            document.querySelectorAll('input[type="radio"]').forEach(el => el.checked = false);
+            respuestas = {};
+            tablaBody.innerHTML = `<tr><td colspan="4" class="mensaje-vacio">Complete el formulario y presione "Calcular"</td></tr>`;
+            notaGlobal.textContent = '—';
+            nivelConcepto.textContent = 'Sin evaluar';
+            ultimoResultado = null;
+            Object.keys(charts).forEach(key => { if (charts[key]) { charts[key].destroy(); charts[key] = null; } });
+            ['radarChart','barChart','donutChart','gaugeChart'].forEach(limpiarCanvas);
+        }
+
+        // ==============================================================
+        //  PDF - CAPTURA DE PANTALLA MEJORADA
+        // ==============================================================
+        async function descargarPDF() {
+            if (!ultimoResultado) {
+                alert('⚠️ Primero calcule la evaluación para generar el PDF.');
+                return;
+            }
+
+            const historialSection = document.getElementById('historialSection');
+            const originalDisplay = historialSection.style.display;
+            historialSection.style.display = 'none';
+            await new Promise(r => setTimeout(r, 150));
+
+            try {
+                // Crear un contenedor para el PDF con mejor diseño
+                const pdfContainer = document.createElement('div');
+                pdfContainer.style.cssText = 'padding:30px; background:white; width:800px; font-family:Segoe UI, sans-serif;';
+                pdfContainer.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:20px; border-bottom:3px solid #1a5a3a; padding-bottom:15px; margin-bottom:20px;">
+                        <div style="width:70px; height:70px; border-radius:50%; background:#1a5a3a; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:1rem; text-align:center; border:3px solid #e8c84a; flex-shrink:0;">
+                            IMDAA<br><span style="font-size:0.5rem;">AGRO</span>
+                        </div>
+                        <div>
+                            <h2 style="color:#1a5a3a; margin:0; font-size:1.4rem;">Evaluación de Desempeño</h2>
+                            <p style="color:#2f5b74; font-size:0.8rem; margin:0;">Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA</p>
+                            <p style="color:#2f5b74; font-size:0.7rem; margin:0;">G-20004428-4</p>
+                        </div>
+                        <div style="margin-left:auto; font-size:0.7rem; color:#2a5e7a; background:#e8f0f7; padding:4px 14px; border-radius:40px;">
+                            ${new Date().toLocaleDateString('es-ES')}
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px 30px; margin:15px 0; font-size:0.85rem; background:#f5f9f6; padding:12px 18px; border-radius:10px;">
+                        <div><strong>Nombre:</strong> ${nombreInput.value || 'Sin nombre'}</div>
+                        <div><strong>Cédula:</strong> ${cedulaInput.value || 'Sin cédula'}</div>
+                        <div><strong>Cargo/Depto:</strong> ${cargoDeptoInput.value || 'Sin cargo'}</div>
+                        <div><strong>Perfil:</strong> ${getPerfilLabel(currentPerfil)}</div>
+                    </div>
+                    <hr style="border:1px solid #dce8f2;">
+                    <table style="width:100%; border-collapse:collapse; margin:12px 0; font-size:0.85rem;">
+                        <thead><tr style="background:#1a5a3a; color:white;"><th style="padding:8px 12px;text-align:left;">Factor</th><th style="padding:8px 12px;text-align:left;">Peso</th><th style="padding:8px 12px;text-align:left;">Nivel</th><th style="padding:8px 12px;text-align:left;">Valor</th></tr></thead>
+                        <tbody>
+                            ${ultimoResultado.resultados.map(r => `<tr><td style="padding:6px 12px;border-bottom:1px solid #eee;">${r.label}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;">${r.peso}%</td><td style="padding:6px 12px;border-bottom:1px solid #eee;">${r.nivel}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;">${r.promedio.toFixed(2)}</td></tr>`).join('')}
+                        </tbody>
+                    </table>
+                    <div style="background:#e8f5ee; padding:12px 18px; border-radius:12px; display:flex; justify-content:space-between; flex-wrap:wrap; margin:10px 0; border-left:4px solid #1a5a3a;">
+                        <span><strong>Nota global:</strong> ${ultimoResultado.notaFinal.toFixed(2)}</span>
+                        <span><strong>Nivel:</strong> ${nivelConcepto.textContent}</span>
+                        <span><strong>Perfil:</strong> ${getPerfilLabel(currentPerfil)}</span>
+                    </div>
+                    <hr>
+                    <div style="text-align:center; font-size:0.7rem; color:#2a5e7a; margin:8px 0 12px;">
+                        Escala: S (5) Sobresaliente · E (4) Excelente · B (3) Bueno · R (2) Regular · D (1) Deficiente
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center;">
+                        <div style="flex:1; min-width:160px; max-width:200px;"><canvas id="pdfRadar" width="200" height="160"></canvas></div>
+                        <div style="flex:1; min-width:160px; max-width:200px;"><canvas id="pdfBar" width="200" height="160"></canvas></div>
+                        <div style="flex:1; min-width:160px; max-width:200px;"><canvas id="pdfDonut" width="200" height="160"></canvas></div>
+                        <div style="flex:1; min-width:160px; max-width:200px;"><canvas id="pdfGauge" width="200" height="160"></canvas></div>
+                    </div>
+                    <div style="text-align:center; font-size:0.6rem; color:#3d6f8a; margin-top:16px; border-top:1px solid #d6e2ed; padding-top:10px;">
+                        Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA · G-20004428-4
+                    </div>
+                `;
+                document.body.appendChild(pdfContainer);
+
+                // Renderizar gráficas en PDF
+                const radarCtx = document.getElementById('pdfRadar').getContext('2d');
+                const barCtx = document.getElementById('pdfBar').getContext('2d');
+                const donutCtx = document.getElementById('pdfDonut').getContext('2d');
+                const gaugeCtx = document.getElementById('pdfGauge').getContext('2d');
+
+                const radarData = charts.radar ? charts.radar.data : null;
+                const barData = charts.bar ? charts.bar.data : null;
+                const donutData = charts.donut ? charts.donut.data : null;
+                const gaugeData = charts.gauge ? charts.gauge.data : null;
+
+                if (radarData) new Chart(radarCtx, { type: 'radar', data: radarData, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
+                if (barData) new Chart(barCtx, { type: 'bar', data: barData, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 5 } } } });
+                if (donutData) new Chart(donutCtx, { type: 'doughnut', data: donutData, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
+                if (gaugeData) new Chart(gaugeCtx, { type: 'doughnut', data: gaugeData, options: { cutout: '75%', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
+
+                setTimeout(async () => {
+                    const canvas = await html2canvas(pdfContainer, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+                    const imgData = canvas.toDataURL('image/png');
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF('p', 'mm', 'a4');
+                    const imgWidth = 210;
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                    doc.save('evaluacion_IMDAA.pdf');
+                    document.body.removeChild(pdfContainer);
+                }, 800);
+
+            } catch (error) {
+                console.error('Error generando PDF:', error);
+                alert('❌ Error al generar el PDF. Intente nuevamente.');
+            }
+
+            historialSection.style.display = originalDisplay;
+        }
+
+        // ==============================================================
+        //  EVENTOS
+        // ==============================================================
+        cargoSelect.addEventListener('change', function() {
+            renderPreguntas(null);
+        });
+        calcularBtn.addEventListener('click', calcularResultados);
+        guardarBtn.addEventListener('click', guardarEvaluacion);
+        nuevoBtn.addEventListener('click', nuevoFormulario);
+        pdfBtn.addEventListener('click', descargarPDF);
+        borrarTodoBtn.addEventListener('click', borrarHistorial);
+
+        // Inicializar
+        renderPreguntas(null);
+        renderHistorial();
+    })();
+</script>
+</body>
+</html>
