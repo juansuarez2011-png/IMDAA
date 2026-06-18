@@ -12,16 +12,16 @@
         body { background: #eef3f7; padding: 20px 12px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         .container { max-width: 1400px; width: 100%; background: white; border-radius: 28px; box-shadow: 0 20px 40px -12px rgba(0,20,30,0.3); padding: 22px 25px; }
         
-        /* HEADER */
-        .header { display: flex; align-items: center; gap: 18px; border-bottom: 3px solid #1a5a3a; padding-bottom: 14px; margin-bottom: 22px; flex-wrap: wrap; }
-        .header .logo { flex-shrink: 0; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #1a5a3a; box-shadow: 0 4px 10px rgba(26,90,58,0.3); border: 3px solid #e8c84a; }
+        /* HEADER - LOGO MÁS GRANDE */
+        .header { display: flex; align-items: center; gap: 20px; border-bottom: 3px solid #1a5a3a; padding-bottom: 14px; margin-bottom: 22px; flex-wrap: wrap; }
+        .header .logo { flex-shrink: 0; width: 110px; height: 110px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #1a5a3a; box-shadow: 0 4px 10px rgba(26,90,58,0.3); border: 4px solid #e8c84a; }
         .header .logo img { width: 100%; height: 100%; object-fit: cover; }
-        .header .logo-placeholder { color: white; font-weight: 700; font-size: 1.2rem; text-align: center; line-height: 1.2; padding: 4px; }
-        .header .logo-placeholder small { font-size: 0.5rem; display: block; }
+        .header .logo-placeholder { color: white; font-weight: 700; font-size: 1.4rem; text-align: center; line-height: 1.2; padding: 4px; }
+        .header .logo-placeholder small { font-size: 0.6rem; display: block; }
         .header .titulo { flex: 1; }
-        .header .titulo h1 { font-size: 1.7rem; font-weight: 600; color: #1a5a3a; }
-        .header .titulo small { font-size: 0.8rem; color: #2f5b74; display: block; font-weight: 400; }
-        .header .fecha-demo { font-size: 0.75rem; color: #2a5e7a; background: #e8f0f7; padding: 6px 16px; border-radius: 40px; }
+        .header .titulo h1 { font-size: 1.8rem; font-weight: 600; color: #1a5a3a; }
+        .header .titulo small { font-size: 0.85rem; color: #2f5b74; display: block; font-weight: 400; }
+        .header .fecha-demo { font-size: 0.8rem; color: #2a5e7a; background: #e8f0f7; padding: 6px 18px; border-radius: 40px; }
         
         /* DATOS PERSONALES */
         .datos-personales { background: #f0f7f2; border-radius: 18px; padding: 16px 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px 20px; margin-bottom: 22px; border: 1px solid #c5dccd; }
@@ -106,7 +106,7 @@
         
         @media (max-width: 480px) {
             .container { padding: 14px 12px; }
-            .header .logo { width: 55px; height: 55px; }
+            .header .logo { width: 70px; height: 70px; }
             .header .titulo h1 { font-size: 1.2rem; }
             .btn { font-size: 0.75rem; padding: 8px 12px; min-width: 70px; }
             .datos-personales { grid-template-columns: 1fr; }
@@ -115,7 +115,7 @@
 </head>
 <body>
 <div class="container" id="app">
-    <!-- HEADER con LOGO -->
+    <!-- HEADER con LOGO MÁS GRANDE -->
     <div class="header">
         <div class="logo" id="logoContainer">
             <img id="logoImg" src="LOGO.png" alt="IMDAA" style="display:none;">
@@ -130,12 +130,12 @@
 
     <!-- DATOS PERSONALES -->
     <div class="datos-personales">
-        <div class="campo"><label>👤 Nombre completo</label><input type="text" id="nombreInput" placeholder="Ej. Juan Suarez"></div>
+        <div class="campo"><label>👤 Nombre completo</label><input type="text" id="nombreInput" placeholder="Ej. Juan Ocando"></div>
         <div class="campo"><label>🪪 Cédula / ID</label><input type="text" id="cedulaInput" placeholder="Ej. V-39399939"></div>
         <div class="campo"><label>🏢 Cargo / Departamento</label><input type="text" id="cargoDeptoInput" placeholder="Ej. Barrendero"></div>
     </div>
 
-    <!-- GRID PRINCIPAL -->
+    <!-- GRID PRINCIPAL - TODO EL CONTENIDO PARA PDF -->
     <div class="grid-2" id="contenidoPDF">
         <div class="form-section">
             <h2>🧾 Factores y preguntas</h2>
@@ -269,19 +269,16 @@
         fechaActual.textContent = new Date().toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
 
         // ==============================================================
-        //  LOGO - intentar cargar LOGO.png
+        //  LOGO
         // ==============================================================
         const logoImg = document.getElementById('logoImg');
         const logoPlaceholder = document.getElementById('logoPlaceholder');
-        
-        // Forzar carga del logo con timestamp para evitar caché
         logoImg.src = 'LOGO.png?' + Date.now();
         logoImg.onload = function() {
             logoPlaceholder.style.display = 'none';
             logoImg.style.display = 'block';
         };
         logoImg.onerror = function() {
-            console.log('Logo no encontrado: LOGO.png');
             logoPlaceholder.style.display = 'flex';
             logoImg.style.display = 'none';
         };
@@ -456,7 +453,7 @@
         }
 
         // ==============================================================
-        //  GUARDAR
+        //  GUARDAR (con respuestas)
         // ==============================================================
         function guardarEvaluacion() {
             const nombre = nombreInput.value.trim() || 'Sin nombre';
@@ -498,7 +495,7 @@
         }
 
         // ==============================================================
-        //  CARGAR EVALUACIÓN
+        //  CARGAR EVALUACIÓN (restaura todos los datos)
         // ==============================================================
         function cargarEvaluacion(id) {
             const entry = historial.find(h => h.id === id);
@@ -507,14 +504,17 @@
                 return;
             }
             
+            // Restaurar datos personales
             nombreInput.value = entry.nombre;
             cedulaInput.value = entry.cedula;
             cargoDeptoInput.value = entry.cargoDepto;
             
+            // Restaurar perfil
             const perfilKey = entry.perfilKey || getPerfilKey(entry.perfil);
             cargoSelect.value = perfilKey;
             currentPerfil = perfilKey;
             
+            // Restaurar respuestas y recalcular
             renderPreguntas(entry.respuestas);
             perfilNombre.textContent = getPerfilLabel(perfilKey);
             
@@ -589,7 +589,7 @@
         }
 
         // ==============================================================
-        //  PDF - CAPTURA DE PANTALLA DE TODA LA ENCUESTA
+        //  PDF - CAPTURA DE TODA LA PLANILLA
         // ==============================================================
         async function descargarPDF() {
             if (!ultimoResultado) {
@@ -597,7 +597,7 @@
                 return;
             }
 
-            // Ocultar historial temporalmente
+            // Ocultar historial
             const historialSection = document.getElementById('historialSection');
             const originalDisplay = historialSection.style.display;
             historialSection.style.display = 'none';
@@ -605,7 +605,7 @@
             await new Promise(r => setTimeout(r, 300));
 
             try {
-                // Capturar TODO el contenido principal (formulario + resultados)
+                // Capturar TODO el contenido (formulario + resultados)
                 const contenido = document.getElementById('contenidoPDF');
                 const canvas = await html2canvas(contenido, {
                     scale: 2.5,
@@ -626,7 +626,6 @@
                 const imgWidth = 210;
                 const imgHeight = (canvas.height * imgWidth) / canvas.width;
                 
-                // Si la imagen es muy alta, ajustar
                 let finalHeight = imgHeight;
                 let finalWidth = imgWidth;
                 if (imgHeight > 285) {
