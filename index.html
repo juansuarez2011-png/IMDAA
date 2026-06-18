@@ -12,37 +12,21 @@
         body { background: #eef3f7; padding: 20px 12px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         .container { max-width: 1400px; width: 100%; background: white; border-radius: 28px; box-shadow: 0 20px 40px -12px rgba(0,20,30,0.3); padding: 22px 25px; }
         
-        /* HEADER - LOGO */
         .header { display: flex; align-items: center; gap: 20px; border-bottom: 3px solid #1a5a3a; padding-bottom: 14px; margin-bottom: 22px; flex-wrap: wrap; }
-        .header .logo { flex-shrink: 0; width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid #e8c84a; background: #f5f5f5; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .header .logo { flex-shrink: 0; width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 4px solid #e8c84a; background: #f0f7f2; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .header .logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
         .header .logo-placeholder { color: #1a5a3a; font-weight: 900; font-size: 1.4rem; text-align: center; line-height: 1.2; padding: 4px; }
-        .header .logo-placeholder small { font-size: 0.6rem; display: block; }
+        .header .logo-placeholder small { font-size: 0.6rem; display: block; font-weight: 400; }
         .header .titulo { flex: 1; }
         .header .titulo h1 { font-size: 1.8rem; font-weight: 600; color: #1a5a3a; }
         .header .titulo small { font-size: 0.85rem; color: #2f5b74; display: block; font-weight: 400; }
         .header .fecha-demo { font-size: 0.8rem; color: #2a5e7a; background: #e8f0f7; padding: 6px 18px; border-radius: 40px; }
         
-        /* DATOS PERSONALES */
         .datos-personales { background: #f0f7f2; border-radius: 18px; padding: 16px 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px 20px; margin-bottom: 22px; border: 1px solid #c5dccd; }
         .datos-personales .campo { display: flex; flex-direction: column; gap: 3px; }
         .datos-personales label { font-weight: 600; font-size: 0.75rem; color: #1a5a3a; letter-spacing: 0.3px; text-transform: uppercase; }
         .datos-personales input { padding: 9px 14px; border-radius: 40px; border: 1px solid #b8cfc5; font-size: 0.9rem; background: white; transition: 0.15s; width: 100%; }
         .datos-personales input:focus { border-color: #1a5a3a; box-shadow: 0 0 0 3px rgba(26,90,58,0.15); outline: none; }
-        
-        /* DATOS DEL EVALUADO - visible en el PDF */
-        .datos-evaluado-pdf {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px 30px;
-            margin: 12px 0;
-            font-size: 0.85rem;
-            background: #f5f9f6;
-            padding: 12px 18px;
-            border-radius: 10px;
-            border: 1px solid #c5dccd;
-        }
-        .datos-evaluado-pdf strong { color: #1a5a3a; }
         
         .grid-2 { display: grid; grid-template-columns: 1fr 1.1fr; gap: 28px; }
         @media (max-width: 1000px) { .grid-2 { grid-template-columns: 1fr; } }
@@ -77,8 +61,6 @@
         .btn-warning:hover { background: #9a742e; }
         .btn-danger { background: #b15e5e; box-shadow: 0 4px 8px rgba(150,50,50,0.2); }
         .btn-danger:hover { background: #914a4a; }
-        .btn-info { background: #2a7a9c; box-shadow: 0 4px 8px rgba(26,85,120,0.2); }
-        .btn-info:hover { background: #1a5f7a; }
         
         .dashboard { background: #f9fbfd; border-radius: 22px; padding: 14px 14px 8px 14px; border: 1px solid #e2ebf3; }
         .dashboard h2 { font-size: 1.1rem; font-weight: 500; color: #1b3e54; margin-bottom: 8px; }
@@ -124,17 +106,21 @@
             .header .titulo h1 { font-size: 1.2rem; }
             .btn { font-size: 0.75rem; padding: 8px 12px; min-width: 70px; }
             .datos-personales { grid-template-columns: 1fr; }
-            .datos-evaluado-pdf { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 <div class="container" id="app">
-    <!-- HEADER con LOGO -->
-    <div class="header" id="headerLogo">
+    <!-- HEADER con LOGO optimizado -->
+    <div class="header">
         <div class="logo" id="logoContainer">
-            <img id="logoImg" src="LOGO.png" alt="IMDAA">
-            <div id="logoPlaceholder" class="logo-placeholder">IMDAA<br><small>AGROPECUARIO</small></div>
+            <img id="logoImg" src="LOGO.png" alt="IMDAA" 
+                 onload="this.style.display='block'; document.getElementById('logoPlaceholder').style.display='none'"
+                 onerror="this.style.display='none'; document.getElementById('logoPlaceholder').style.display='flex'"
+                 style="display:none;">
+            <div id="logoPlaceholder" class="logo-placeholder" style="display:flex;">
+                IMDAA<br><small>AGROPECUARIO</small>
+            </div>
         </div>
         <div class="titulo">
             <h1>Evaluación de Desempeño</h1>
@@ -144,7 +130,7 @@
     </div>
 
     <!-- DATOS PERSONALES -->
-    <div class="datos-personales" id="datosEvaluado">
+    <div class="datos-personales">
         <div class="campo"><label>👤 Nombre completo</label><input type="text" id="nombreInput" placeholder="Ej. Juan Ocando"></div>
         <div class="campo"><label>🪪 Cédula / ID</label><input type="text" id="cedulaInput" placeholder="Ej. V-39399939"></div>
         <div class="campo"><label>🏢 Cargo / Departamento</label><input type="text" id="cargoDeptoInput" placeholder="Ej. Barrendero"></div>
@@ -282,23 +268,6 @@
         const perfilFactores = document.getElementById('perfilFactores');
 
         fechaActual.textContent = new Date().toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
-
-        // ==============================================================
-        //  LOGO - carga simple y rápida
-        // ==============================================================
-        const logoImg = document.getElementById('logoImg');
-        const logoPlaceholder = document.getElementById('logoPlaceholder');
-        
-        logoImg.onload = function() {
-            logoPlaceholder.style.display = 'none';
-            logoImg.style.display = 'block';
-        };
-        logoImg.onerror = function() {
-            logoPlaceholder.style.display = 'block';
-            logoImg.style.display = 'none';
-        };
-        // Forzar carga sin timestamp para que sea más rápida
-        logoImg.src = 'LOGO.png';
 
         // ==============================================================
         //  FUNCIONES AUXILIARES
@@ -603,7 +572,7 @@
         }
 
         // ==============================================================
-        //  PDF - CAPTURA DIRECTA DE LA PANTALLA
+        //  PDF - CAPTURA DE PANTALLA
         // ==============================================================
         async function descargarPDF() {
             if (!ultimoResultado) {
@@ -611,27 +580,19 @@
                 return;
             }
 
-            // Obtener datos del evaluado
             const nombre = nombreInput.value.trim() || 'Sin nombre';
             const cedula = cedulaInput.value.trim() || 'Sin cédula';
             const cargo = cargoDeptoInput.value.trim() || 'Sin cargo';
             const perfil = getPerfilLabel(currentPerfil);
             const fecha = new Date().toLocaleDateString('es-ES');
 
-            // Ocultar historial
             const historialSection = document.getElementById('historialSection');
             const originalDisplay = historialSection.style.display;
             historialSection.style.display = 'none';
             
-            // Forzar actualización de los datos en el DOM
-            const nombreMostrar = document.getElementById('nombreMostrar') || document.createElement('span');
-            const cedulaMostrar = document.getElementById('cedulaMostrar') || document.createElement('span');
-            const cargoMostrar = document.getElementById('cargoMostrar') || document.createElement('span');
-            
-            await new Promise(r => setTimeout(r, 400));
+            await new Promise(r => setTimeout(r, 300));
 
             try {
-                // Capturar TODO el contenido
                 const contenido = document.getElementById('contenidoPDF');
                 const canvas = await html2canvas(contenido, {
                     scale: 2.5,
@@ -640,9 +601,7 @@
                     allowTaint: true,
                     logging: false,
                     width: contenido.scrollWidth,
-                    height: contenido.scrollHeight,
-                    windowWidth: contenido.scrollWidth,
-                    windowHeight: contenido.scrollHeight
+                    height: contenido.scrollHeight
                 });
 
                 const imgData = canvas.toDataURL('image/png');
@@ -660,9 +619,7 @@
                 }
                 
                 const xOffset = (210 - finalWidth) / 2;
-                const yOffset = 8;
                 
-                // Título con los datos del evaluado
                 doc.setFontSize(12);
                 doc.setTextColor(26, 90, 58);
                 doc.text('Evaluación de Desempeño - IMDAA', 105, 12, { align: 'center' });
@@ -673,13 +630,8 @@
                 doc.setTextColor(100, 100, 100);
                 doc.text(`Fecha: ${fecha}`, 105, 24, { align: 'center' });
                 
-                // Ajustar posición de la imagen
-                const imgYOffset = yOffset + 20;
-                const imgFinalHeight = finalHeight - 20;
+                doc.addImage(imgData, 'PNG', xOffset, 28, finalWidth, finalHeight - 28);
                 
-                doc.addImage(imgData, 'PNG', xOffset, imgYOffset, finalWidth, imgFinalHeight);
-                
-                // Pie de página
                 doc.setFontSize(6);
                 doc.setTextColor(100, 100, 100);
                 doc.text('Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA · G-20004428-4', 105, 290, { align: 'center' });
