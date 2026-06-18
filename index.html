@@ -114,10 +114,10 @@
 </head>
 <body>
 <div class="container" id="app">
-    <!-- HEADER con LOGO SIN FONDO -->
-    <div class="header">
+    <!-- HEADER con LOGO -->
+    <div class="header" id="headerLogo">
         <div class="logo" id="logoContainer">
-            <img id="logoImg" src="LOGO.png" alt="IMDAA">
+            <img id="logoImg" src="LOGO.png" alt="IMDAA" crossorigin="anonymous">
             <div id="logoPlaceholder" class="logo-placeholder">IMDAA<br><small>AGROPECUARIO</small></div>
         </div>
         <div class="titulo">
@@ -128,7 +128,7 @@
     </div>
 
     <!-- DATOS PERSONALES -->
-    <div class="datos-personales">
+    <div class="datos-personales" id="datosEvaluado">
         <div class="campo"><label>👤 Nombre completo</label><input type="text" id="nombreInput" placeholder="Ej. Juan Ocando"></div>
         <div class="campo"><label>🪪 Cédula / ID</label><input type="text" id="cedulaInput" placeholder="Ej. V-39399939"></div>
         <div class="campo"><label>🏢 Cargo / Departamento</label><input type="text" id="cargoDeptoInput" placeholder="Ej. Barrendero"></div>
@@ -268,7 +268,7 @@
         fechaActual.textContent = new Date().toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
 
         // ==============================================================
-        //  LOGO - SIN FONDO VERDE
+        //  LOGO
         // ==============================================================
         const logoImg = document.getElementById('logoImg');
         const logoPlaceholder = document.getElementById('logoPlaceholder');
@@ -586,7 +586,7 @@
         }
 
         // ==============================================================
-        //  PDF - CAPTURA DE TODA LA PLANILLA
+        //  PDF - CAPTURA DE TODA LA PLANILLA CON LOGO Y DATOS
         // ==============================================================
         async function descargarPDF() {
             if (!ultimoResultado) {
@@ -594,59 +594,113 @@
                 return;
             }
 
+            // Obtener datos del evaluado
+            const nombre = nombreInput.value.trim() || 'Sin nombre';
+            const cedula = cedulaInput.value.trim() || 'Sin cédula';
+            const cargo = cargoDeptoInput.value.trim() || 'Sin cargo';
+            const perfil = getPerfilLabel(currentPerfil);
+            const fecha = new Date().toLocaleDateString('es-ES');
+
+            // Ocultar historial
             const historialSection = document.getElementById('historialSection');
             const originalDisplay = historialSection.style.display;
             historialSection.style.display = 'none';
             
-            await new Promise(r => setTimeout(r, 300));
+            await new Promise(r => setTimeout(r, 500));
 
             try {
-                const contenido = document.getElementById('contenidoPDF');
-                const canvas = await html2canvas(contenido, {
-                    scale: 2.5,
-                    useCORS: true,
-                    backgroundColor: '#ffffff',
-                    allowTaint: true,
-                    logging: false,
-                    width: contenido.scrollWidth,
-                    height: contenido.scrollHeight,
-                    windowWidth: contenido.scrollWidth,
-                    windowHeight: contenido.scrollHeight
-                });
+                // Crear un contenedor específico para el PDF
+                const pdfContainer = document.createElement('div');
+                pdfContainer.style.cssText = 'padding:30px; background:white; width:800px; font-family:Segoe UI, sans-serif;';
+                pdfContainer.innerHTML = `
+                    <!-- Header con logo -->
+                    <div style="display:flex; align-items:center; gap:20px; border-bottom:3px solid #1a5a3a; padding-bottom:15px; margin-bottom:20px;">
+                        <div style="width:100px; height:100px; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:4px solid #e8c84a; background:transparent; flex-shrink:0;">
+                            <img src="${logoImg.src}" alt="IMDAA" style="width:100%; height:100%; object-fit:contain;">
+                        </div>
+                        <div>
+                            <h2 style="color:#1a5a3a; margin:0; font-size:1.4rem;">Evaluación de Desempeño</h2>
+                            <p style="color:#2f5b74; font-size:0.8rem; margin:0;">Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA</p>
+                            <p style="color:#2f5b74; font-size:0.7rem; margin:0;">G-20004428-4</p>
+                        </div>
+                        <div style="margin-left:auto; font-size:0.7rem; color:#2a5e7a; background:#e8f0f7; padding:4px 14px; border-radius:40px;">
+                            ${fecha}
+                        </div>
+                    </div>
+                    
+                    <!-- Datos del evaluado -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px 30px; margin:15px 0; font-size:0.85rem; background:#f5f9f6; padding:12px 18px; border-radius:10px;">
+                        <div><strong>Nombre:</strong> ${nombre}</div>
+                        <div><strong>Cédula:</strong> ${cedula}</div>
+                        <div><strong>Cargo/Depto:</strong> ${cargo}</div>
+                        <div><strong>Perfil:</strong> ${perfil}</div>
+                    </div>
+                    <hr style="border:1px solid #dce8f2;">
+                    
+                    <!-- Tabla de resultados -->
+                    <table style="width:100%; border-collapse:collapse; margin:12px 0; font-size:0.85rem;">
+                        <thead><tr style="background:#1a5a3a; color:white;"><th style="padding:8px 12px;text-align:left;">Factor</th><th style="padding:8px 12px;text-align:left;">Peso</th><th style="padding:8px 12px;text-align:left;">Nivel</th><th style="padding:8px 12px;text-align:left;">Valor</th></tr></thead>
+                        <tbody>
+                            ${ultimoResultado.resultados.map(r => `<tr><td style="padding:6px 12px;border-bottom:1px solid #eee;">${r.label}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;">${r.peso}%</td><td style="padding:6px 12px;border-bottom:1px solid #eee;">${r.nivel}</td><td style="padding:6px 12px;border-bottom:1px solid #eee;">${r.promedio.toFixed(2)}</td></tr>`).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <!-- Resumen -->
+                    <div style="background:#e8f5ee; padding:12px 18px; border-radius:12px; display:flex; justify-content:space-between; flex-wrap:wrap; margin:10px 0; border-left:4px solid #1a5a3a;">
+                        <span><strong>Nota global:</strong> ${ultimoResultado.notaFinal.toFixed(2)}</span>
+                        <span><strong>Nivel:</strong> ${nivelConcepto.textContent}</span>
+                        <span><strong>Perfil:</strong> ${perfil}</span>
+                    </div>
+                    <hr>
+                    
+                    <!-- Escala -->
+                    <div style="text-align:center; font-size:0.7rem; color:#2a5e7a; margin:8px 0 12px;">
+                        Escala: S (5) Sobresaliente · E (4) Excelente · B (3) Bueno · R (2) Regular · D (1) Deficiente
+                    </div>
+                    
+                    <!-- Gráficas -->
+                    <div style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center;">
+                        <div style="flex:1; min-width:160px; max-width:200px;"><canvas id="pdfRadar" width="200" height="160"></canvas></div>
+                        <div style="flex:1; min-width:160px; max-width:200px;"><canvas id="pdfBar" width="200" height="160"></canvas></div>
+                        <div style="flex:1; min-width:160px; max-width:200px;"><canvas id="pdfDonut" width="200" height="160"></canvas></div>
+                        <div style="flex:1; min-width:160px; max-width:200px;"><canvas id="pdfGauge" width="200" height="160"></canvas></div>
+                    </div>
+                    
+                    <!-- Pie -->
+                    <div style="text-align:center; font-size:0.6rem; color:#3d6f8a; margin-top:16px; border-top:1px solid #d6e2ed; padding-top:10px;">
+                        Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA · G-20004428-4
+                    </div>
+                `;
+                document.body.appendChild(pdfContainer);
 
-                const imgData = canvas.toDataURL('image/png');
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('p', 'mm', 'a4');
-                
-                const imgWidth = 210;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                
-                let finalHeight = imgHeight;
-                let finalWidth = imgWidth;
-                if (imgHeight > 285) {
-                    finalHeight = 285;
-                    finalWidth = (imgWidth * 285) / imgHeight;
-                }
-                
-                const xOffset = (210 - finalWidth) / 2;
-                const yOffset = 8;
-                
-                doc.setFontSize(12);
-                doc.setTextColor(26, 90, 58);
-                doc.text('Evaluación de Desempeño - IMDAA', 105, 12, { align: 'center' });
-                doc.setFontSize(8);
-                doc.setTextColor(47, 91, 116);
-                doc.text(`Nombre: ${nombreInput.value || 'Sin nombre'}  |  Cédula: ${cedulaInput.value || 'Sin cédula'}  |  Cargo: ${cargoDeptoInput.value || 'Sin cargo'}  |  Perfil: ${getPerfilLabel(currentPerfil)}`, 105, 18, { align: 'center' });
-                
-                doc.addImage(imgData, 'PNG', xOffset, yOffset + 7, finalWidth, finalHeight - 7);
-                
-                doc.setFontSize(6);
-                doc.setTextColor(100, 100, 100);
-                doc.text('Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA · G-20004428-4', 105, 290, { align: 'center' });
-                doc.text(new Date().toLocaleDateString('es-ES'), 105, 294, { align: 'center' });
-                
-                doc.save('evaluacion_IMDAA.pdf');
-                
+                // Renderizar gráficas en PDF
+                const radarCtx = document.getElementById('pdfRadar').getContext('2d');
+                const barCtx = document.getElementById('pdfBar').getContext('2d');
+                const donutCtx = document.getElementById('pdfDonut').getContext('2d');
+                const gaugeCtx = document.getElementById('pdfGauge').getContext('2d');
+
+                const radarData = charts.radar ? charts.radar.data : null;
+                const barData = charts.bar ? charts.bar.data : null;
+                const donutData = charts.donut ? charts.donut.data : null;
+                const gaugeData = charts.gauge ? charts.gauge.data : null;
+
+                if (radarData) new Chart(radarCtx, { type: 'radar', data: radarData, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
+                if (barData) new Chart(barCtx, { type: 'bar', data: barData, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 5 } } } });
+                if (donutData) new Chart(donutCtx, { type: 'doughnut', data: donutData, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
+                if (gaugeData) new Chart(gaugeCtx, { type: 'doughnut', data: gaugeData, options: { cutout: '75%', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
+
+                setTimeout(async () => {
+                    const canvas = await html2canvas(pdfContainer, { scale: 2.5, useCORS: true, backgroundColor: '#ffffff' });
+                    const imgData = canvas.toDataURL('image/png');
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF('p', 'mm', 'a4');
+                    const imgWidth = 210;
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    doc.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                    doc.save('evaluacion_IMDAA.pdf');
+                    document.body.removeChild(pdfContainer);
+                }, 800);
+
             } catch (error) {
                 console.error('Error generando PDF:', error);
                 alert('❌ Error al generar el PDF. Intente nuevamente.');
