@@ -285,6 +285,10 @@
         //  FUNCIONES AUXILIARES
         // ==============================================================
         function nivelValor(nivel) { const map = { 'S':5,'E':4,'B':3,'R':2,'D':1 }; return map[nivel] || 0; }
+        function getNivelLabel(nivel) {
+            const map = { 'S': 'Sobresaliente', 'E': 'Excelente', 'B': 'Bueno', 'R': 'Regular', 'D': 'Deficiente' };
+            return map[nivel] || nivel;
+        }
         function nivelConceptoText(valor) {
             if (valor >= 4.5) return 'Sobresaliente (S)';
             if (valor >= 3.5) return 'Excelente (E)';
@@ -598,7 +602,7 @@
         }
 
         // ==============================================================
-        //  PDF - CON LOGO, DATOS Y GRÁFICAS CON LEYENDA
+        //  PDF PERFECTO CON LEYENDAS Y VALORES
         // ==============================================================
         async function descargarPDF() {
             if (!ultimoResultado) {
@@ -611,6 +615,9 @@
             const cargo = cargoDeptoInput.value.trim() || 'Sin cargo';
             const perfil = getPerfilLabel(currentPerfil);
             const fecha = new Date().toLocaleDateString('es-ES');
+            const notaFinal = ultimoResultado.notaFinal.toFixed(2);
+            const nivelFinal = ultimoResultado.nivelFinal;
+            const nivelLabel = getNivelLabel(nivelFinal);
 
             const historialSection = document.getElementById('historialSection');
             const originalDisplay = historialSection.style.display;
@@ -620,91 +627,100 @@
 
             try {
                 const pdfContainer = document.createElement('div');
-                pdfContainer.style.cssText = 'padding:15px 20px; background:white; width:750px; font-family:Segoe UI, sans-serif;';
+                pdfContainer.style.cssText = 'padding:15px 18px; background:white; width:750px; font-family:Segoe UI, sans-serif;';
                 const logoSrc = logoImg.src || 'LOGO.png';
                 
                 pdfContainer.innerHTML = `
                     <!-- HEADER -->
-                    <div style="display:flex; align-items:center; gap:15px; border-bottom:3px solid #1a5a3a; padding-bottom:10px; margin-bottom:12px;">
-                        <div style="width:65px; height:65px; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:3px solid #e8c84a; background:#ffffff; flex-shrink:0;">
+                    <div style="display:flex; align-items:center; gap:12px; border-bottom:3px solid #1a5a3a; padding-bottom:8px; margin-bottom:10px;">
+                        <div style="width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; border:3px solid #e8c84a; background:#ffffff; flex-shrink:0;">
                             <img src="${logoSrc}" alt="IMDAA" style="width:100%; height:100%; object-fit:contain;">
                         </div>
                         <div>
-                            <h2 style="color:#1a5a3a; margin:0; font-size:1.2rem;">Evaluación de Desempeño</h2>
-                            <p style="color:#2f5b74; font-size:0.65rem; margin:0;">Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA</p>
-                            <p style="color:#2f5b74; font-size:0.6rem; margin:0;">G-20004428-4</p>
+                            <h2 style="color:#1a5a3a; margin:0; font-size:1.1rem;">Evaluación de Desempeño</h2>
+                            <p style="color:#2f5b74; font-size:0.6rem; margin:0;">Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA</p>
+                            <p style="color:#2f5b74; font-size:0.55rem; margin:0;">G-20004428-4</p>
                         </div>
-                        <div style="margin-left:auto; font-size:0.6rem; color:#2a5e7a; background:#e8f0f7; padding:2px 12px; border-radius:40px;">${fecha}</div>
+                        <div style="margin-left:auto; text-align:right;">
+                            <div style="font-size:0.55rem; color:#2a5e7a; background:#e8f0f7; padding:2px 12px; border-radius:40px;">${fecha}</div>
+                        </div>
                     </div>
                     
                     <!-- DATOS DEL EVALUADO -->
-                    <div style="background:#f0f7f2; border-radius:8px; padding:8px 14px; margin:8px 0; border:1px solid #c5dccd; display:grid; grid-template-columns:1fr 1fr; gap:4px 20px; font-size:0.75rem;">
+                    <div style="background:#f0f7f2; border-radius:6px; padding:6px 12px; margin:6px 0; border:1px solid #c5dccd; display:grid; grid-template-columns:1fr 1fr; gap:3px 15px; font-size:0.7rem;">
                         <div><strong style="color:#1a5a3a;">Nombre:</strong> ${nombre}</div>
                         <div><strong style="color:#1a5a3a;">Cédula:</strong> ${cedula}</div>
                         <div><strong style="color:#1a5a3a;">Cargo/Depto:</strong> ${cargo}</div>
                         <div><strong style="color:#1a5a3a;">Perfil Evaluador:</strong> ${perfil}</div>
                     </div>
                     
-                    <!-- TABLA -->
-                    <table style="width:100%; border-collapse:collapse; margin:6px 0; font-size:0.7rem;">
+                    <!-- TABLA DE RESULTADOS -->
+                    <table style="width:100%; border-collapse:collapse; margin:5px 0; font-size:0.65rem;">
                         <thead><tr style="background:#1a5a3a; color:white;">
-                            <th style="padding:4px 8px;text-align:left;">Factor</th>
-                            <th style="padding:4px 8px;text-align:center;">Peso</th>
-                            <th style="padding:4px 8px;text-align:center;">Nivel</th>
-                            <th style="padding:4px 8px;text-align:center;">Valor</th>
+                            <th style="padding:3px 6px;text-align:left;">Factor</th>
+                            <th style="padding:3px 6px;text-align:center;">Peso</th>
+                            <th style="padding:3px 6px;text-align:center;">Nivel</th>
+                            <th style="padding:3px 6px;text-align:center;">Valor</th>
                         </tr></thead>
                         <tbody>
                             ${ultimoResultado.resultados.map(r => `<tr>
-                                <td style="padding:3px 8px;border-bottom:1px solid #eee;">${r.label}</td>
-                                <td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;">${r.peso}%</td>
-                                <td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;font-weight:bold;color:#1a5a3a;">${r.nivel}</td>
-                                <td style="padding:3px 8px;border-bottom:1px solid #eee;text-align:center;">${r.promedio.toFixed(2)}</td>
+                                <td style="padding:3px 6px;border-bottom:1px solid #eee;">${r.label}</td>
+                                <td style="padding:3px 6px;border-bottom:1px solid #eee;text-align:center;">${r.peso}%</td>
+                                <td style="padding:3px 6px;border-bottom:1px solid #eee;text-align:center;font-weight:bold;color:#1a5a3a;">${r.nivel} (${getNivelLabel(r.nivel)})</td>
+                                <td style="padding:3px 6px;border-bottom:1px solid #eee;text-align:center;">${r.promedio.toFixed(2)}</td>
                             </tr>`).join('')}
                         </tbody>
                     </table>
                     
                     <!-- RESUMEN -->
-                    <div style="background:#e8f5ee; padding:6px 14px; border-radius:8px; display:flex; justify-content:space-between; flex-wrap:wrap; margin:6px 0; border-left:4px solid #1a5a3a; font-size:0.7rem;">
-                        <span><strong>Nota global:</strong> ${ultimoResultado.notaFinal.toFixed(2)}</span>
-                        <span><strong>Nivel:</strong> ${nivelConcepto.textContent}</span>
-                        <span><strong>Perfil Evaluador:</strong> ${perfil}</span>
+                    <div style="background:#e8f5ee; padding:5px 12px; border-radius:6px; display:flex; justify-content:space-between; flex-wrap:wrap; margin:5px 0; border-left:4px solid #1a5a3a; font-size:0.7rem;">
+                        <span><strong>⭐ Nota global:</strong> ${notaFinal}</span>
+                        <span><strong>🏅 Nivel:</strong> ${nivelLabel} (${nivelFinal})</span>
+                        <span><strong>📌 Perfil Evaluador:</strong> ${perfil}</span>
                     </div>
                     
-                    <!-- ESCALA -->
-                    <div style="text-align:center; font-size:0.55rem; color:#2a5e7a; margin:4px 0 6px; background:#f5f9f6; padding:3px; border-radius:6px;">
-                        Escala: S (5) Sobresaliente · E (4) Excelente · B (3) Bueno · R (2) Regular · D (1) Deficiente
+                    <!-- ESCALA COMPLETA -->
+                    <div style="text-align:center; font-size:0.5rem; color:#1a5a3a; margin:3px 0 5px; background:#f5f9f6; padding:3px; border-radius:4px; border:1px solid #d6e2ed;">
+                        <strong>Escala de calificación:</strong> 
+                        <span style="color:#1b6b4a;">S (5) Sobresaliente</span> · 
+                        <span style="color:#2d8f6f;">E (4) Excelente</span> · 
+                        <span style="color:#6a9eb5;">B (3) Bueno</span> · 
+                        <span style="color:#c09a5e;">R (2) Regular</span> · 
+                        <span style="color:#b15e5e;">D (1) Deficiente</span>
                     </div>
                     
-                    <!-- GRÁFICAS EN 2x2 CON LEYENDA EN LA DONA -->
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:4px;">
-                        <div style="border:1px solid #e6edf5; border-radius:6px; padding:4px; background:#fafcfd;">
-                            <p style="font-size:0.5rem; text-align:center; color:#2a5e7a; margin:0 0 2px 0; font-weight:600;">RADAR · COMPETENCIAS</p>
-                            <canvas id="pdfRadar" width="180" height="120"></canvas>
+                    <!-- GRÁFICAS EN 2x2 CON LEYENDAS -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;">
+                        <div style="border:1px solid #e6edf5; border-radius:5px; padding:3px; background:#fafcfd;">
+                            <p style="font-size:0.5rem; text-align:center; color:#1a5a3a; margin:0 0 2px 0; font-weight:700;">RADAR · COMPETENCIAS</p>
+                            <canvas id="pdfRadar" width="175" height="115"></canvas>
+                            <p style="font-size:0.4rem; text-align:center; color:#2f5b74; margin:1px 0 0 0;">Metas · Personas · Competencias · Responsabilidad</p>
                         </div>
-                        <div style="border:1px solid #e6edf5; border-radius:6px; padding:4px; background:#fafcfd;">
-                            <p style="font-size:0.5rem; text-align:center; color:#2a5e7a; margin:0 0 2px 0; font-weight:600;">METAS · BARRA</p>
-                            <canvas id="pdfBar" width="180" height="120"></canvas>
+                        <div style="border:1px solid #e6edf5; border-radius:5px; padding:3px; background:#fafcfd;">
+                            <p style="font-size:0.5rem; text-align:center; color:#1a5a3a; margin:0 0 2px 0; font-weight:700;">METAS · BARRA</p>
+                            <canvas id="pdfBar" width="175" height="115"></canvas>
+                            <p style="font-size:0.4rem; text-align:center; color:#2f5b74; margin:1px 0 0 0;">Nivel de cumplimiento (1-5)</p>
                         </div>
-                        <div style="border:1px solid #e6edf5; border-radius:6px; padding:4px; background:#fafcfd;">
-                            <p style="font-size:0.5rem; text-align:center; color:#2a5e7a; margin:0 0 2px 0; font-weight:600;">ANILLO · SATISFACCIÓN</p>
-                            <canvas id="pdfDonut" width="180" height="120"></canvas>
-                            <div style="display:flex; justify-content:center; gap:8px; font-size:0.5rem; margin-top:2px; flex-wrap:wrap;">
-                                <span><span style="display:inline-block; width:10px; height:10px; background:#2d8f6f; border-radius:50%;"></span> Excelente</span>
-                                <span><span style="display:inline-block; width:10px; height:10px; background:#6a9eb5; border-radius:50%;"></span> Bueno</span>
-                                <span><span style="display:inline-block; width:10px; height:10px; background:#c09a5e; border-radius:50%;"></span> Regular</span>
-                                <span><span style="display:inline-block; width:10px; height:10px; background:#b15e5e; border-radius:50%;"></span> Deficiente</span>
+                        <div style="border:1px solid #e6edf5; border-radius:5px; padding:3px; background:#fafcfd;">
+                            <p style="font-size:0.5rem; text-align:center; color:#1a5a3a; margin:0 0 2px 0; font-weight:700;">ANILLO · SATISFACCIÓN</p>
+                            <canvas id="pdfDonut" width="175" height="100"></canvas>
+                            <div style="display:flex; justify-content:center; gap:8px; font-size:0.45rem; margin-top:1px; flex-wrap:wrap;">
+                                <span><span style="display:inline-block; width:8px; height:8px; background:#2d8f6f; border-radius:50%;"></span> Excelente</span>
+                                <span><span style="display:inline-block; width:8px; height:8px; background:#6a9eb5; border-radius:50%;"></span> Bueno</span>
+                                <span><span style="display:inline-block; width:8px; height:8px; background:#c09a5e; border-radius:50%;"></span> Regular</span>
+                                <span><span style="display:inline-block; width:8px; height:8px; background:#b15e5e; border-radius:50%;"></span> Deficiente</span>
                             </div>
                         </div>
-                        <div style="border:1px solid #e6edf5; border-radius:6px; padding:4px; background:#fafcfd;">
-                            <p style="font-size:0.5rem; text-align:center; color:#2a5e7a; margin:0 0 2px 0; font-weight:600;">TERMÓMETRO · GESTIÓN</p>
-                            <canvas id="pdfGauge" width="180" height="120"></canvas>
-                            <p style="font-size:0.45rem; text-align:center; color:#1a5a3a; margin:2px 0 0 0;">${Math.round((ultimoResultado.notaFinal/5)*100)}% de ejecución</p>
+                        <div style="border:1px solid #e6edf5; border-radius:5px; padding:3px; background:#fafcfd;">
+                            <p style="font-size:0.5rem; text-align:center; color:#1a5a3a; margin:0 0 2px 0; font-weight:700;">TERMÓMETRO · GESTIÓN</p>
+                            <canvas id="pdfGauge" width="175" height="100"></canvas>
+                            <p style="font-size:0.5rem; text-align:center; color:#1a5a3a; margin:2px 0 0 0; font-weight:700;">${Math.round((parseFloat(notaFinal)/5)*100)}% de ejecución</p>
                         </div>
                     </div>
                     
                     <!-- PIE -->
-                    <div style="text-align:center; font-size:0.5rem; color:#3d6f8a; margin-top:6px; border-top:1px solid #d6e2ed; padding-top:5px;">
-                        IMDAA · G-20004428-4
+                    <div style="text-align:center; font-size:0.45rem; color:#3d6f8a; margin-top:5px; border-top:1px solid #d6e2ed; padding-top:4px;">
+                        Instituto Municipal de Desarrollo Agropecuario y Afines - IMDAA · G-20004428-4
                     </div>
                 `;
                 document.body.appendChild(pdfContainer);
@@ -731,17 +747,14 @@
                     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { min: 0, max: 5 } } } 
                 });
                 if (donutData) {
-                    const donutChart = new Chart(donutCtx, { 
+                    new Chart(donutCtx, { 
                         type: 'doughnut', 
                         data: donutData, 
                         options: { 
                             responsive: true, 
                             maintainAspectRatio: true, 
-                            plugins: { 
-                                legend: { 
-                                    display: false
-                                }
-                            } 
+                            plugins: { legend: { display: false } },
+                            cutout: '65%'
                         } 
                     });
                 }
