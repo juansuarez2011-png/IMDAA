@@ -74,13 +74,13 @@
         .chart-card h4 { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.4px; color: #2a5e7a; margin-bottom: 3px; text-align: center; }
         .chart-card canvas { width: 100% !important; height: auto !important; max-height: 110px; }
         
-        .resultado-final { background: #e2edf7; border-radius: 16px; padding: 12px 16px; margin: 8px 0 8px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+        .resultado-final { background: #e8f5ee; border-radius: 16px; padding: 12px 16px; margin: 8px 0 8px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; border-left: 4px solid #1a5a3a; }
         .resultado-final .nota { font-weight: 700; font-size: 1.4rem; color: #063246; }
         .resultado-final .desc { font-weight: 500; color: #1a4d66; font-size: 0.9rem; }
         .badge { background: #1a5a3a; color: white; padding: 4px 14px; border-radius: 40px; font-weight: 600; font-size: 0.75rem; }
         
         .tabla-eval { width: 100%; border-collapse: collapse; margin: 6px 0 8px; font-size: 0.7rem; }
-        .tabla-eval th { background: #dce8f2; color: #15384d; padding: 5px 6px; text-align: left; font-weight: 600; }
+        .tabla-eval th { background: #1a5a3a; color: white; padding: 5px 6px; text-align: left; font-weight: 600; }
         .tabla-eval td { padding: 4px 8px; border-bottom: 1px solid #dde7f0; }
         .tabla-eval tr:last-child td { border-bottom: none; }
         
@@ -96,8 +96,8 @@
         .tabla-historial .btn-peq { padding: 2px 10px; border-radius: 30px; font-size: 0.6rem; cursor: pointer; border: none; color: white; font-weight: 600; }
         .btn-peq-del { background: #b15e5e; }
         .btn-peq-del:hover { background: #8f4747; }
-        .btn-peq-load { background: #2a7a9c; }
-        .btn-peq-load:hover { background: #1a5f7a; }
+        .btn-peq-load { background: #1a5a3a; }
+        .btn-peq-load:hover { background: #0f4028; }
         
         .footer-peq { margin-top: 12px; font-size: 0.6rem; color: #3d6f8a; text-align: center; border-top: 1px solid #d6e2ed; padding-top: 10px; }
         .mensaje-vacio { text-align: center; color: #6a8fa5; padding: 10px; }
@@ -267,20 +267,6 @@
         const perfilFactores = document.getElementById('perfilFactores');
 
         fechaActual.textContent = new Date().toLocaleDateString('es-ES', { day:'2-digit', month:'short', year:'numeric' });
-
-        // Logo: intentar cargar logoimdaa.png, si falla mostrar placeholder
-        const logoImg = document.getElementById('logoImg');
-        const logoPlaceholder = document.getElementById('logoPlaceholder');
-        logoImg.onload = function() {
-            logoPlaceholder.style.display = 'none';
-            logoImg.style.display = 'block';
-        };
-        logoImg.onerror = function() {
-            logoPlaceholder.style.display = 'flex';
-            logoImg.style.display = 'none';
-        };
-        // Forzar recarga del logo
-        logoImg.src = 'logoimdaa.png?' + Date.now();
 
         // ==============================================================
         //  FUNCIONES AUXILIARES
@@ -585,7 +571,7 @@
         }
 
         // ==============================================================
-        //  PDF - CAPTURA DE PANTALLA MEJORADA
+        //  PDF MEJORADO
         // ==============================================================
         async function descargarPDF() {
             if (!ultimoResultado) {
@@ -599,7 +585,6 @@
             await new Promise(r => setTimeout(r, 150));
 
             try {
-                // Crear un contenedor para el PDF con mejor diseño
                 const pdfContainer = document.createElement('div');
                 pdfContainer.style.cssText = 'padding:30px; background:white; width:800px; font-family:Segoe UI, sans-serif;';
                 pdfContainer.innerHTML = `
@@ -650,7 +635,7 @@
                 `;
                 document.body.appendChild(pdfContainer);
 
-                // Renderizar gráficas en PDF
+                // Gráficas para PDF
                 const radarCtx = document.getElementById('pdfRadar').getContext('2d');
                 const barCtx = document.getElementById('pdfBar').getContext('2d');
                 const donutCtx = document.getElementById('pdfDonut').getContext('2d');
